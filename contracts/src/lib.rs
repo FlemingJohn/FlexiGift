@@ -13,7 +13,8 @@ sol! {
         address indexed giver,
         uint256 amount,
         uint256 expiryTimestamp,
-        string message
+        string message,
+        uint256 deliveryTimestamp
     );
 
     event GiftCardRedeemed(
@@ -33,6 +34,16 @@ sol! {
         uint256 indexed giftCardId,
         string merchantName
     );
+
+    event GiftCardDelivered(
+        uint256 indexed giftCardId,
+        uint256 deliveredAt
+    );
+
+    event ScheduledDeliveryCancelled(
+        uint256 indexed giftCardId,
+        address indexed giver
+    );
 }
 
 /// Represents a single gift card
@@ -46,6 +57,8 @@ pub struct GiftCard {
     pub is_active: bool,
     pub created_at: U256,
     pub message: String,
+    pub delivery_timestamp: U256,  // 0 = immediate, >0 = scheduled
+    pub is_delivered: bool,         // false until delivery time
 }
 
 /// Main FlexiGift contract storage
@@ -93,6 +106,12 @@ pub enum FlexiGiftError {
     Paused,
     MerchantNotAllowed,
     MessageTooLong,
+    NotYetDelivered,
+    AlreadyDelivered,
+    DeliveryTimeNotReached,
+    OnlyGiverCanCancel,
+    CannotCancelAfterDelivery,
+    InvalidDeliveryTime,
 }
 
 #[public]
@@ -112,12 +131,14 @@ impl FlexiGiftContract {
     /// @param expiry_days: Number of days until expiry
     /// @param merchant_indices: Array of allowed merchant indices
     /// @param message: Optional custom message (max 280 characters)
+    /// @param delivery_timestamp: Unix timestamp for delivery (0 = immediate)
     pub fn create_gift_card(
         &mut self,
         amount: U256,
         expiry_days: U256,
         merchant_indices: Vec<U256>,
         message: String,
+        delivery_timestamp: U256,
     ) -> Result<U256, FlexiGiftError> {
         // Check if paused
         if self.paused.get() {
@@ -139,8 +160,22 @@ impl FlexiGiftContract {
             return Err(FlexiGiftError::MessageTooLong);
         }
 
-        // Calculate expiry timestamp
+        // Validate delivery timestamp
         let current_time = U256::from(block::timestamp());
+        if delivery_timestamp != U256::from(0) {
+            // If scheduled delivery, must be in future
+            if delivery_timestamp <= current_time {
+                return Err(FlexiGiftError::InvalidDeliveryTime);
+            }
+            // Delivery must be before expiry
+            let expiry_seconds = expiry_days * U256::from(86400);
+            let expiry_timestamp = current_time + expiry_seconds;
+            if delivery_timestamp >= expiry_timestamp {
+                return Err(FlexiGiftError::InvalidDeliveryTime);
+            }
+        }
+
+        // Calculate expiry timestamp
         let expiry_seconds = expiry_days * U256::from(86400); // days to seconds
         let expiry_timestamp = current_time + expiry_seconds;
 
@@ -149,6 +184,7 @@ impl FlexiGiftContract {
         self.gift_card_counter.set(gift_card_id);
 
         // Create gift card
+        let is_immediate = delivery_timestamp == U256::from(0);
         let gift_card = GiftCard {
             id: gift_card_id,
             giver: msg::sender(),
@@ -158,6 +194,8 @@ impl FlexiGiftContract {
             is_active: true,
             created_at: current_time,
             message: message.clone(),
+            delivery_timestamp,
+            is_delivered: is_immediate,  // Immediate delivery = already delivered
         };
 
         // Store gift card
@@ -182,6 +220,7 @@ impl FlexiGiftContract {
             amount,
             expiryTimestamp: expiry_timestamp,
             message,
+            deliveryTimestamp: delivery_timestamp,
         });
 
         Ok(gift_card_id)
@@ -209,6 +248,11 @@ impl FlexiGiftContract {
         // Check if active
         if !gift_card.is_active {
             return Err(FlexiGiftError::GiftCardInactive);
+        }
+
+        // Check if delivered (for scheduled gifts)
+        if !gift_card.is_delivered {
+            return Err(FlexiGiftError::NotYetDelivered);
         }
 
         // Check if expired
@@ -339,6 +383,72 @@ impl FlexiGiftContract {
             return Err(FlexiGiftError::Unauthorized);
         }
         self.paused.set(false);
+        Ok(())
+    }
+
+    /// Deliver a scheduled gift card (callable by anyone after delivery time)
+    pub fn deliver_gift_card(&mut self, gift_card_id: U256) -> Result<(), FlexiGiftError> {
+        // Get gift card
+        let mut gift_card = self.gift_cards.get(gift_card_id)
+            .ok_or(FlexiGiftError::GiftCardNotFound)?;
+
+        // Check if already delivered
+        if gift_card.is_delivered {
+            return Err(FlexiGiftError::AlreadyDelivered);
+        }
+
+        // Check if delivery time has arrived
+        let current_time = U256::from(block::timestamp());
+        if current_time < gift_card.delivery_timestamp {
+            return Err(FlexiGiftError::DeliveryTimeNotReached);
+        }
+
+        // Mark as delivered
+        gift_card.is_delivered = true;
+        self.gift_cards.insert(gift_card_id, gift_card);
+
+        // Emit event
+        evm::log(GiftCardDelivered {
+            giftCardId: gift_card_id,
+            deliveredAt: current_time,
+        });
+
+        Ok(())
+    }
+
+    /// Cancel scheduled delivery (only giver, before delivery)
+    pub fn cancel_scheduled_delivery(&mut self, gift_card_id: U256) -> Result<(), FlexiGiftError> {
+        // Get gift card
+        let mut gift_card = self.gift_cards.get(gift_card_id)
+            .ok_or(FlexiGiftError::GiftCardNotFound)?;
+
+        // Only giver can cancel
+        if msg::sender() != gift_card.giver {
+            return Err(FlexiGiftError::OnlyGiverCanCancel);
+        }
+
+        // Cannot cancel after delivery
+        if gift_card.is_delivered {
+            return Err(FlexiGiftError::CannotCancelAfterDelivery);
+        }
+
+        // Get refund amount
+        let refund_amount = gift_card.remaining_balance;
+
+        // Deactivate card
+        gift_card.is_active = false;
+        gift_card.remaining_balance = U256::from(0);
+        self.gift_cards.insert(gift_card_id, gift_card);
+
+        // TODO: Transfer USDC back to giver
+        // This requires ERC20 interface implementation
+
+        // Emit event
+        evm::log(ScheduledDeliveryCancelled {
+            giftCardId: gift_card_id,
+            giver: gift_card.giver,
+        });
+
         Ok(())
     }
 }
