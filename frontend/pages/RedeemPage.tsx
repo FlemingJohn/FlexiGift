@@ -14,6 +14,7 @@ interface GiftCardData {
     expiryTimestamp: number;
     isActive: boolean;
     createdAt: number;
+    message?: string;
 }
 
 export const RedeemPage: React.FC = () => {
