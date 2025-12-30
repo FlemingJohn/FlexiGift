@@ -12,7 +12,8 @@ sol! {
         uint256 indexed giftCardId,
         address indexed giver,
         uint256 amount,
-        uint256 expiryTimestamp
+        uint256 expiryTimestamp,
+        string message
     );
 
     event GiftCardRedeemed(
@@ -44,6 +45,7 @@ pub struct GiftCard {
     pub expiry_timestamp: U256,
     pub is_active: bool,
     pub created_at: U256,
+    pub message: String,
 }
 
 /// Main FlexiGift contract storage
@@ -68,6 +70,9 @@ pub struct FlexiGiftContract {
     /// Merchant counter
     merchant_counter: StorageU256,
     
+    /// Mapping from gift card ID to custom message
+    gift_card_messages: StorageMap<U256, String>,
+    
     /// USDC token address (ERC20)
     usdc_token: StorageAddress,
     
@@ -87,6 +92,7 @@ pub enum FlexiGiftError {
     TransferFailed,
     Paused,
     MerchantNotAllowed,
+    MessageTooLong,
 }
 
 #[public]
@@ -105,11 +111,13 @@ impl FlexiGiftContract {
     /// @param amount: Amount of USDC to lock
     /// @param expiry_days: Number of days until expiry
     /// @param merchant_indices: Array of allowed merchant indices
+    /// @param message: Optional custom message (max 280 characters)
     pub fn create_gift_card(
         &mut self,
         amount: U256,
         expiry_days: U256,
         merchant_indices: Vec<U256>,
+        message: String,
     ) -> Result<U256, FlexiGiftError> {
         // Check if paused
         if self.paused.get() {
@@ -124,6 +132,11 @@ impl FlexiGiftContract {
         // Validate expiry
         if expiry_days == U256::from(0) {
             return Err(FlexiGiftError::InvalidExpiry);
+        }
+
+        // Validate message length (max 280 characters for security)
+        if message.len() > 280 {
+            return Err(FlexiGiftError::MessageTooLong);
         }
 
         // Calculate expiry timestamp
@@ -144,10 +157,14 @@ impl FlexiGiftContract {
             expiry_timestamp,
             is_active: true,
             created_at: current_time,
+            message: message.clone(),
         };
 
         // Store gift card
         self.gift_cards.insert(gift_card_id, gift_card);
+
+        // Store message separately for efficient access
+        self.gift_card_messages.insert(gift_card_id, message.clone());
 
         // Store allowed merchants
         let mut merchants = self.allowed_merchants.get_mut(gift_card_id);
@@ -164,6 +181,7 @@ impl FlexiGiftContract {
             giver: msg::sender(),
             amount,
             expiryTimestamp: expiry_timestamp,
+            message,
         });
 
         Ok(gift_card_id)

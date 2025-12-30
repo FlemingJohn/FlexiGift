@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, Calendar, DollarSign, Store, Loader2, CheckCircle, ExternalLink, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Gift, Calendar, DollarSign, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, MessageSquare } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -12,6 +12,7 @@ export const CreatePage: React.FC = () => {
     const [amount, setAmount] = useState('');
     const [expiryDays, setExpiryDays] = useState('30');
     const [selectedMerchants, setSelectedMerchants] = useState<number[]>([0, 1, 2]);
+    const [message, setMessage] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
     const [giftCardId, setGiftCardId] = useState<string | null>(null);
@@ -47,12 +48,18 @@ export const CreatePage: React.FC = () => {
             return;
         }
 
+        // Validate message length
+        if (message.length > 280) {
+            setError('Message must be 280 characters or less');
+            return;
+        }
+
         setIsCreating(true);
         setError(null);
 
         try {
             const contract = new FlexiGiftContract(signer);
-            const result = await contract.createGiftCard(amount, parseInt(expiryDays), selectedMerchants);
+            const result = await contract.createGiftCard(amount, parseInt(expiryDays), selectedMerchants, message);
 
             setTxHash(result.txHash);
             setGiftCardId(result.giftCardId || null);
@@ -68,6 +75,7 @@ export const CreatePage: React.FC = () => {
         setAmount('');
         setExpiryDays('30');
         setSelectedMerchants([0, 1, 2]);
+        setMessage('');
         setTxHash(null);
         setGiftCardId(null);
         setError(null);
@@ -208,6 +216,36 @@ export const CreatePage: React.FC = () => {
                                         className="w-full pl-14 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-lg placeholder-white/40 focus:outline-none focus:border-green-500 transition-colors"
                                     />
                                 </div>
+                            </div>
+
+                            {/* Custom Message */}
+                            <div className="mb-8">
+                                <label className="block text-white font-semibold mb-3 text-lg flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <MessageSquare size={24} />
+                                        <span>Personal Message (Optional)</span>
+                                    </div>
+                                    <span className={`text-sm ${message.length > 280 ? 'text-red-400' : 'text-white/40'}`}>
+                                        {message.length}/280
+                                    </span>
+                                </label>
+                                <textarea
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="Add a heartfelt message to your gift... (e.g., 'Happy Birthday! Enjoy your special day! 🎉')"
+                                    maxLength={280}
+                                    rows={4}
+                                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-base placeholder-white/40 focus:outline-none focus:border-green-500 transition-colors resize-none"
+                                />
+                                {message.length > 0 && (
+                                    <div className="mt-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                        <p className="text-sm text-white/60 mb-1">Preview:</p>
+                                        <p className="text-white italic">"{message}"</p>
+                                    </div>
+                                )}
+                                <p className="text-white/40 text-xs mt-2">
+                                    💡 Tip: Messages are stored on-chain and are public. Keep them appropriate!
+                                </p>
                             </div>
 
                             {/* Merchant Selection */}

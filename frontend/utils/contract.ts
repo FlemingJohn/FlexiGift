@@ -4,13 +4,13 @@ import { CONTRACTS } from '../config';
 
 // Placeholder ABI - will be replaced with actual ABI from cargo stylus export-abi
 const FLEXIGIFT_ABI = [
-    'function createGiftCard(uint256 amount, uint256 expiryDays, uint256[] memory merchantIndices) external returns (uint256)',
+    'function createGiftCard(uint256 amount, uint256 expiryDays, uint256[] memory merchantIndices, string memory message) external returns (uint256)',
     'function redeemGiftCard(uint256 giftCardId, uint256 amount, uint256 merchantIndex) external',
     'function refundGiftCard(uint256 giftCardId) external',
-    'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt))',
+    'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message))',
     'function addMerchant(string memory name) external returns (uint256)',
     'function getMerchantName(uint256 merchantId) external view returns (string)',
-    'event GiftCardCreated(uint256 indexed giftCardId, address indexed giver, uint256 amount, uint256 expiryTimestamp)',
+    'event GiftCardCreated(uint256 indexed giftCardId, address indexed giver, uint256 amount, uint256 expiryTimestamp, string message)',
     'event GiftCardRedeemed(uint256 indexed giftCardId, address indexed recipient, uint256 amount, uint256 remainingBalance)',
     'event GiftCardRefunded(uint256 indexed giftCardId, address indexed giver, uint256 refundAmount)',
 ];
@@ -34,7 +34,8 @@ export class FlexiGiftContract {
     async createGiftCard(
         amountUSDC: string,
         expiryDays: number,
-        merchantIndices: number[]
+        merchantIndices: number[],
+        message: string = ''
     ) {
         try {
             // Convert USDC amount to wei (6 decimals)
@@ -48,7 +49,8 @@ export class FlexiGiftContract {
             const tx = await this.contract.createGiftCard(
                 amount,
                 BigInt(expiryDays),
-                merchantIndices
+                merchantIndices,
+                message
             );
             const receipt = await tx.wait();
 
@@ -117,6 +119,7 @@ export class FlexiGiftContract {
                 expiryTimestamp: Number(data.expiryTimestamp),
                 isActive: data.isActive,
                 createdAt: Number(data.createdAt),
+                message: data.message || '',
             };
         } catch (error: any) {
             console.error('Failed to get gift card:', error);

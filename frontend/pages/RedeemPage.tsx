@@ -237,6 +237,21 @@ export const RedeemPage: React.FC = () => {
                                 </span>
                             </div>
                         </div>
+
+                        {/* Custom Message */}
+                        {giftCard.message && giftCard.message.trim() !== '' && (
+                            <div className="mt-6 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+                                <div className="flex items-start space-x-3 mb-3">
+                                    <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <Gift className="text-green-400" size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-white/60 text-sm mb-1">Message from {giftCard.giver.slice(0, 6)}...{giftCard.giver.slice(-4)}</p>
+                                        <p className="text-white text-lg italic leading-relaxed">"{giftCard.message}"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Redeem Section */}
