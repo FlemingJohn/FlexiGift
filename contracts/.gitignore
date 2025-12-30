@@ -1,0 +1,10 @@
+.DS_Store
+target/
+Cargo.lock
+*.wasm
+*.so
+*.dylib
+*.dll
+.env
+.env.local
+node_modules/

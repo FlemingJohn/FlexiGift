@@ -1,15 +1,21 @@
 
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const Hero: React.FC = () => {
   const [offset, setOffset] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setOffset(window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const handleCreateClick = () => {
+    navigate('/create');
+  };
 
   return (
     <div className="relative min-h-screen flex flex-col justify-center px-8 md:px-24 overflow-hidden">
@@ -44,7 +50,10 @@ export const Hero: React.FC = () => {
           </h1>
 
           <div className="mt-16 flex items-center space-x-4" style={{ transform: `translateY(${offset * 0.05}px)` }}>
-            <button className="px-8 py-3 bg-white text-black rounded-full font-bold flex items-center space-x-3 group hover:bg-green-500 hover:text-white transition-all duration-300">
+            <button
+              onClick={handleCreateClick}
+              className="px-8 py-3 bg-white text-black rounded-full font-bold flex items-center space-x-3 group hover:bg-green-500 hover:text-white transition-all duration-300"
+            >
               <span className="text-sm">Create Gift Card</span>
               <div className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center transition-all group-hover:bg-white/20">
                 <div className="w-2 h-2 bg-black group-hover:bg-white rounded-full" />
@@ -57,9 +66,6 @@ export const Hero: React.FC = () => {
           className="lg:col-span-4 self-center lg:text-right"
           style={{ transform: `translateY(${offset * 0.15}px)` }}
         >
-          <p className="max-w-[280px] ml-auto text-sm text-white/40 leading-relaxed font-light mt-12 lg:mt-0">
-            On-chain gift cards powered by Rust + Stylus smart contracts. Flexible spending, auto-refunds, and 10x cheaper gas fees on Arbitrum.
-          </p>
         </div>
       </div>
 
