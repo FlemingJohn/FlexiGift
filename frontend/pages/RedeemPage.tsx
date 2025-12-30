@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, DollarSign, Calendar, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Gift, DollarSign, Calendar, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw, Clock } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -15,6 +15,8 @@ interface GiftCardData {
     isActive: boolean;
     createdAt: number;
     message?: string;
+    deliveryTimestamp?: number;
+    isDelivered?: boolean;
 }
 
 export const RedeemPage: React.FC = () => {
@@ -254,6 +256,93 @@ export const RedeemPage: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Delivery Status (for scheduled gifts) */}
+                    {giftCard.deliveryTimestamp && giftCard.deliveryTimestamp > 0 && (
+                        <div className="glass-card p-8 md:p-12 rounded-3xl mb-8">
+                            {!giftCard.isDelivered ? (
+                                <>
+                                    {/* Not yet delivered */}
+                                    {Date.now() / 1000 < giftCard.deliveryTimestamp ? (
+                                        /* Waiting for delivery time */
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Clock className="text-blue-400" size={40} />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">
+                                                ⏰ Scheduled Delivery
+                                            </h3>
+                                            <p className="text-white/60 mb-6">
+                                                This gift card will be available for redemption in:
+                                            </p>
+                                            <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-6">
+                                                <p className="text-4xl font-bold text-blue-400">
+                                                    {(() => {
+                                                        const diff = giftCard.deliveryTimestamp - Math.floor(Date.now() / 1000);
+                                                        const days = Math.floor(diff / 86400);
+                                                        const hours = Math.floor((diff % 86400) / 3600);
+                                                        const minutes = Math.floor((diff % 3600) / 60);
+                                                        if (days > 0) return `${days}d ${hours}h`;
+                                                        if (hours > 0) return `${hours}h ${minutes}m`;
+                                                        return `${minutes}m`;
+                                                    })()}
+                                                </p>
+                                                <p className="text-white/60 text-sm mt-2">
+                                                    Delivers on {new Date(giftCard.deliveryTimestamp * 1000).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <p className="text-white/40 text-sm">
+                                                💡 The gift card is locked until the delivery time. Check back later!
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        /* Ready for delivery */
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Gift className="text-green-400" size={40} />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">
+                                                🎁 Ready for Delivery!
+                                            </h3>
+                                            <p className="text-white/60 mb-6">
+                                                The delivery time has arrived. Click below to activate this gift card.
+                                            </p>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!signer) return;
+                                                    try {
+                                                        const contract = new FlexiGiftContract(signer);
+                                                        await contract.deliverGiftCard(giftCardId!);
+                                                        window.location.reload();
+                                                    } catch (err: any) {
+                                                        alert(err.message || 'Failed to deliver gift card');
+                                                    }
+                                                }}
+                                                className="w-full max-w-md mx-auto px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg transition-colors flex items-center justify-center space-x-2"
+                                            >
+                                                <Gift size={24} />
+                                                <span>Deliver Gift Card Now</span>
+                                            </button>
+                                            <p className="text-white/40 text-sm mt-4">
+                                                💡 Anyone can trigger delivery, but only the recipient can redeem it.
+                                            </p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                /* Already delivered */
+                                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center space-x-3">
+                                    <CheckCircle className="text-green-400 flex-shrink-0" size={24} />
+                                    <div>
+                                        <p className="text-white font-semibold">Gift Card Delivered</p>
+                                        <p className="text-white/60 text-sm">
+                                            This scheduled gift card has been activated and is ready to use!
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Redeem Section */}
                     {giftCard.isActive && !isExpired && parseFloat(giftCard.remainingBalance) > 0 && (

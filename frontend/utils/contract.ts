@@ -4,15 +4,19 @@ import { CONTRACTS } from '../config';
 
 // Placeholder ABI - will be replaced with actual ABI from cargo stylus export-abi
 const FLEXIGIFT_ABI = [
-    'function createGiftCard(uint256 amount, uint256 expiryDays, uint256[] memory merchantIndices, string memory message) external returns (uint256)',
+    'function createGiftCard(uint256 amount, uint256 expiryDays, uint256[] memory merchantIndices, string memory message, uint256 deliveryTimestamp) external returns (uint256)',
     'function redeemGiftCard(uint256 giftCardId, uint256 amount, uint256 merchantIndex) external',
     'function refundGiftCard(uint256 giftCardId) external',
-    'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message))',
+    'function deliverGiftCard(uint256 giftCardId) external',
+    'function cancelScheduledDelivery(uint256 giftCardId) external',
+    'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message, uint256 deliveryTimestamp, bool isDelivered))',
     'function addMerchant(string memory name) external returns (uint256)',
     'function getMerchantName(uint256 merchantId) external view returns (string)',
-    'event GiftCardCreated(uint256 indexed giftCardId, address indexed giver, uint256 amount, uint256 expiryTimestamp, string message)',
+    'event GiftCardCreated(uint256 indexed giftCardId, address indexed giver, uint256 amount, uint256 expiryTimestamp, string message, uint256 deliveryTimestamp)',
     'event GiftCardRedeemed(uint256 indexed giftCardId, address indexed recipient, uint256 amount, uint256 remainingBalance)',
     'event GiftCardRefunded(uint256 indexed giftCardId, address indexed giver, uint256 refundAmount)',
+    'event GiftCardDelivered(uint256 indexed giftCardId, uint256 deliveredAt)',
+    'event ScheduledDeliveryCancelled(uint256 indexed giftCardId, address indexed giver)',
 ];
 
 const USDC_ABI = [
@@ -35,7 +39,8 @@ export class FlexiGiftContract {
         amountUSDC: string,
         expiryDays: number,
         merchantIndices: number[],
-        message: string = ''
+        message: string = '',
+        deliveryTimestamp: number = 0  // 0 = immediate, >0 = scheduled
     ) {
         try {
             // Convert USDC amount to wei (6 decimals)
@@ -50,7 +55,8 @@ export class FlexiGiftContract {
                 amount,
                 BigInt(expiryDays),
                 merchantIndices,
-                message
+                message,
+                BigInt(deliveryTimestamp)
             );
             const receipt = await tx.wait();
 
@@ -120,6 +126,8 @@ export class FlexiGiftContract {
                 isActive: data.isActive,
                 createdAt: Number(data.createdAt),
                 message: data.message || '',
+                deliveryTimestamp: Number(data.deliveryTimestamp),
+                isDelivered: data.isDelivered,
             };
         } catch (error: any) {
             console.error('Failed to get gift card:', error);
@@ -135,6 +143,30 @@ export class FlexiGiftContract {
         } catch (error: any) {
             console.error('Failed to get USDC balance:', error);
             return '0.00';
+        }
+    }
+
+    // Deliver a scheduled gift card
+    async deliverGiftCard(giftCardId: string) {
+        try {
+            const tx = await this.contract.deliverGiftCard(BigInt(giftCardId));
+            const receipt = await tx.wait();
+            return { txHash: receipt.hash };
+        } catch (error: any) {
+            console.error('Failed to deliver gift card:', error);
+            throw new Error(error.message || 'Failed to deliver gift card');
+        }
+    }
+
+    // Cancel scheduled delivery
+    async cancelScheduledDelivery(giftCardId: string) {
+        try {
+            const tx = await this.contract.cancelScheduledDelivery(BigInt(giftCardId));
+            const receipt = await tx.wait();
+            return { txHash: receipt.hash };
+        } catch (error: any) {
+            console.error('Failed to cancel scheduled delivery:', error);
+            throw new Error(error.message || 'Failed to cancel scheduled delivery');
         }
     }
 }

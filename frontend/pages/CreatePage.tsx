@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, Calendar, DollarSign, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Gift, Calendar, DollarSign, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, MessageSquare, Clock } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -13,6 +13,8 @@ export const CreatePage: React.FC = () => {
     const [expiryDays, setExpiryDays] = useState('30');
     const [selectedMerchants, setSelectedMerchants] = useState<number[]>([0, 1, 2]);
     const [message, setMessage] = useState('');
+    const [isScheduled, setIsScheduled] = useState(false);
+    const [deliveryDateTime, setDeliveryDateTime] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
     const [giftCardId, setGiftCardId] = useState<string | null>(null);
@@ -54,12 +56,44 @@ export const CreatePage: React.FC = () => {
             return;
         }
 
+        // Validate delivery time if scheduled
+        let deliveryTimestamp = 0;
+        if (isScheduled) {
+            if (!deliveryDateTime) {
+                setError('Please select a delivery date and time');
+                return;
+            }
+
+            const deliveryTime = new Date(deliveryDateTime).getTime() / 1000;
+            const now = Math.floor(Date.now() / 1000);
+            const minDelivery = now + 300; // 5 minutes from now
+
+            if (deliveryTime < minDelivery) {
+                setError('Delivery must be at least 5 minutes in the future');
+                return;
+            }
+
+            const expiryTime = now + (parseInt(expiryDays) * 86400);
+            if (deliveryTime >= expiryTime) {
+                setError('Delivery must be before expiry date');
+                return;
+            }
+
+            deliveryTimestamp = Math.floor(deliveryTime);
+        }
+
         setIsCreating(true);
         setError(null);
 
         try {
             const contract = new FlexiGiftContract(signer);
-            const result = await contract.createGiftCard(amount, parseInt(expiryDays), selectedMerchants, message);
+            const result = await contract.createGiftCard(
+                amount,
+                parseInt(expiryDays),
+                selectedMerchants,
+                message,
+                deliveryTimestamp
+            );
 
             setTxHash(result.txHash);
             setGiftCardId(result.giftCardId || null);
@@ -76,6 +110,8 @@ export const CreatePage: React.FC = () => {
         setExpiryDays('30');
         setSelectedMerchants([0, 1, 2]);
         setMessage('');
+        setIsScheduled(false);
+        setDeliveryDateTime('');
         setTxHash(null);
         setGiftCardId(null);
         setError(null);
@@ -217,6 +253,75 @@ export const CreatePage: React.FC = () => {
                                     />
                                 </div>
                             </div>
+
+                            {/* Scheduled Delivery Toggle */}
+                            <div className="mb-8">
+                                <label className="block text-white font-semibold mb-3 text-lg flex items-center justify-between">
+                                    <span>Delivery</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsScheduled(!isScheduled)}
+                                        className={`relative w-16 h-8 rounded-full transition-all duration-300 ${isScheduled ? 'bg-green-500' : 'bg-white/20'
+                                            }`}
+                                    >
+                                        <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all duration-300 ${isScheduled ? 'right-1' : 'left-1'
+                                            }`} />
+                                    </button>
+                                </label>
+                                <div className="flex space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsScheduled(false)}
+                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${!isScheduled
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        Send Now
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsScheduled(true)}
+                                        className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${isScheduled
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        Schedule for Later
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Date/Time Picker (when scheduled) */}
+                            {isScheduled && (
+                                <div className="mb-8 p-6 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                    <label className="block text-white font-semibold mb-3 text-lg flex items-center space-x-2">
+                                        <Clock size={24} className="text-green-400" />
+                                        <span>Delivery Date & Time</span>
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={deliveryDateTime}
+                                        onChange={(e) => setDeliveryDateTime(e.target.value)}
+                                        min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)}
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-500 transition-colors"
+                                    />
+                                    {deliveryDateTime && (
+                                        <div className="mt-4 p-4 bg-white/5 rounded-lg">
+                                            <p className="text-white/60 text-sm mb-1">Scheduled for:</p>
+                                            <p className="text-white font-semibold text-lg">
+                                                {new Date(deliveryDateTime).toLocaleString()}
+                                            </p>
+                                            <p className="text-green-400 text-sm mt-2">
+                                                ⏰ Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <p className="text-white/40 text-xs mt-3">
+                                        💡 Gift card will be locked until delivery time. Recipient can activate it after this time.
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Custom Message */}
                             <div className="mb-8">
