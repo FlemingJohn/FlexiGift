@@ -189,12 +189,6 @@ npm run dev
 - ✅ **Developer-Friendly**: Comprehensive documentation
 - ✅ **Premium UX**: High-end glassmorphic design and real-time state updates
 
-## 🎯 Hackathon Categories
-
-This project targets **3 Arbitrum categories**:
-1. **Stylus-based contracts and tools** ✅
-2. **Dashboards and developer tools** ✅
-3. **Orbit chain experiments** (optional)
 
 ## 🔗 Resources
 
