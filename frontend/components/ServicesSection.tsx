@@ -25,11 +25,6 @@ export const ServicesSection: React.FC = () => {
       description: 'Secured by Arbitrum L2 with Ethereum-grade security. Your funds are always safe and verifiable.'
     },
     {
-      icon: Code,
-      title: 'Developer SDK',
-      description: 'Easy-to-use TypeScript SDK for integrating FlexiGift into any dApp or application.'
-    },
-    {
       icon: BarChart3,
       title: 'Real-time Analytics',
       description: 'Track gift card usage, redemption rates, and gas savings with our comprehensive dashboard.'

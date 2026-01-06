@@ -52,7 +52,7 @@ export const SolutionsSection: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-bold text-white mb-2">Developer Tools</h3>
                   <p className="text-white/60">
-                    Comprehensive SDK, analytics dashboard, and documentation to help developers integrate FlexiGift.
+                    Comprehensive analytics dashboard and documentation to help developers integrate FlexiGift.
                   </p>
                 </div>
               </div>

@@ -34,13 +34,12 @@ FlexiGift uses **Arbitrum Stylus** (Rust → WASM) to create:
 - Gift card creation/redemption UI
 
 ### Developer Tools
-- TypeScript SDK (coming soon)
 - Analytics dashboard (coming soon)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-```bash
+```bash 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
@@ -96,13 +95,13 @@ npm run dev
 - ✅ **Interoperable**: Full compatibility with Solidity contracts
 - ✅ **Secure**: Rust's compile-time safety guarantees
 - ✅ **Transparent**: All transactions verifiable on-chain
-- ✅ **Developer-Friendly**: Comprehensive SDK and documentation
+- ✅ **Developer-Friendly**: Comprehensive documentation
 
 ## 🎯 Hackathon Categories
 
 This project targets **3 Arbitrum categories**:
 1. **Stylus-based contracts and tools** ✅
-2. **Dashboards, SDKs, developer tools** ✅
+2. **Dashboards and developer tools** ✅
 3. **Orbit chain experiments** (optional)
 
 ## 🔗 Resources

@@ -27,14 +27,6 @@ FlexiGift/
 │   ├── package.json           # NPM dependencies
 │   └── vite.config.ts         # Vite configuration
 │
-├── sdk/                        # Developer SDK (Coming Soon)
-│   ├── src/
-│   │   ├── index.ts           # Main SDK exports
-│   │   ├── contract.ts        # Contract interactions
-│   │   └── types.ts           # TypeScript types
-│   ├── package.json
-│   └── README.md
-│
 ├── dashboard/                  # Analytics Dashboard (Coming Soon)
 │   ├── pages/
 │   ├── components/
@@ -43,7 +35,6 @@ FlexiGift/
 └── Guides/                     # Documentation
     ├── PRD.md                 # Product Requirements
     ├── STYLUS_GUIDE.md        # Stylus development guide
-    └── SDK_GUIDE.md           # SDK integration guide (Coming Soon)
 ```
 
 ## Technology Stack
@@ -60,11 +51,6 @@ FlexiGift/
 - **Web3**: ethers.js v6
 - **Wallet**: MetaMask
 
-### SDK
-- **Language**: TypeScript
-- **Build**: tsup
-- **Package**: npm
-
 ### Dashboard
 - **Framework**: Next.js
 - **Charts**: Chart.js
@@ -80,7 +66,6 @@ FlexiGift/
 
 🚧 **In Progress**:
 - Contract deployment to testnet
-- SDK development
 - Frontend integration
 
 📋 **Planned**:

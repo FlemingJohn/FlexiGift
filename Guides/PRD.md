@@ -28,7 +28,6 @@
 
 * **10x cheaper gas fees** than Ethereum L1
 * **Stylus contracts** (Rust → WASM) = better performance & memory efficiency
-* **Developer-friendly SDK** for easy integration
 * **Real-time analytics dashboard** for transparency
 * Smart contracts:
   * Lock funds securely
@@ -42,7 +41,7 @@
 This project targets **3 categories**:
 
 1. ✅ **Stylus-based contracts and tools** - Core contracts in Rust
-2. ✅ **Dashboards, SDKs, developer tools** - Developer SDK + Analytics
+2. ✅ **Dashboards and developer tools** - Analytics dashboard
 3. ✅ **Orbit chain experiments** (Optional) - Custom L3 deployment
 
 ---
@@ -115,7 +114,7 @@ Unused funds go back to the gift giver
 
 **Product Name:** FlexiGift (Arbitrum Ecosystem)
 
-**Goal:** Reduce gift card waste using Rust + Stylus smart contracts with developer tools and analytics.
+**Goal:** Reduce gift card waste using Rust + Stylus smart contracts with analytics tools.
 
 ---
 
@@ -132,7 +131,7 @@ A blockchain-based gift card system where funds are:
 * Locked in Stylus smart contracts (Rust → WASM)
 * Spent across multiple merchants
 * Automatically refundable if unused
-* Supported by developer SDK and analytics dashboard
+* Supported by analytics dashboard
 
 ---
 
@@ -140,7 +139,6 @@ A blockchain-based gift card system where funds are:
 
 * Gift givers (friends, family)
 * Gift recipients
-* Developers (using FlexiGift SDK)
 * Merchants (future scope)
 
 ---
@@ -167,7 +165,6 @@ A blockchain-based gift card system where funds are:
 
 ### 🛠️ Developer Tools
 
-* **FlexiGift SDK**: TypeScript/JavaScript library
 * **Analytics Dashboard**: Real-time on-chain metrics
 * **Documentation**: Stylus development tutorials
 
@@ -182,7 +179,6 @@ A blockchain-based gift card system where funds are:
 | Redeem Gift      | Release funds on spend         |
 | Balance Tracking | Live updates                   |
 | Refund           | Claim after expiry             |
-| SDK Integration  | Easy developer integration     |
 | Analytics        | Real-time dashboard            |
 
 ---
@@ -192,7 +188,6 @@ A blockchain-based gift card system where funds are:
 * **Low gas fees** (Arbitrum L2)
 * **Secure Stylus contracts** (Rust safety guarantees)
 * **Simple UI** (non-crypto users)
-* **Developer-friendly** (comprehensive SDK)
 * **Performance** (WASM execution efficiency)
 
 ---
@@ -205,8 +200,7 @@ A blockchain-based gift card system where funds are:
 * **Token:** USDC (ERC-20)
 * **Deployment:** `cargo stylus` CLI
 
-### Developer Tools & SDK
-* **FlexiGift SDK:** TypeScript/JavaScript library for easy integration
+### Developer Tools
 * **Analytics Dashboard:** Real-time on-chain metrics and insights
 * **Documentation:** Technical tutorials on Stylus development
 
@@ -227,9 +221,8 @@ A blockchain-based gift card system where funds are:
 * % of gift cards fully used
 * Reduction in unused balances
 * Successful refund transactions
-* **SDK adoption** (number of integrations)
 * **Gas savings** vs. Ethereum L1
-* **Developer engagement** (tutorial views, SDK downloads)
+* **Developer engagement** (tutorial views)
 
 ---
 
@@ -244,7 +237,7 @@ A blockchain-based gift card system where funds are:
 
 # 🏆 One-Line Pitch (For Judges)
 
-> "We reduce gift card waste using **Rust + Stylus smart contracts** on Arbitrum, with a developer SDK and analytics dashboard that makes on-chain gift cards 10x cheaper and fully transparent."
+> "We reduce gift card waste using **Rust + Stylus smart contracts** on Arbitrum, with an analytics dashboard that makes on-chain gift cards 10x cheaper and fully transparent."
 
 ---
 
@@ -257,7 +250,6 @@ A blockchain-based gift card system where funds are:
 * **Interoperability**: Full compatibility with Solidity contracts
 
 ## Why Developer Tools?
-* **FlexiGift SDK**: Easy integration for any dApp
 * **Analytics Dashboard**: Real-time insights into gift card economy
 * **Technical Tutorials**: Help others build on Arbitrum Stylus
 
@@ -275,11 +267,6 @@ A blockchain-based gift card system where funds are:
    - MerchantRegistry.rs
    - Comprehensive tests
 
-2. **Developer SDK** (TypeScript)
-   - npm package
-   - Full API documentation
-   - Code examples
-
 3. **Analytics Dashboard** (Next.js)
    - Real-time metrics
    - Gas savings calculator
@@ -292,5 +279,4 @@ A blockchain-based gift card system where funds are:
 
 5. **Documentation**
    - Stylus development guide
-   - SDK integration tutorial
    - Video walkthrough
