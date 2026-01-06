@@ -44,6 +44,25 @@ sol! {
         uint256 indexed giftCardId,
         address indexed giver
     );
+
+    // ERC-721 Events
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId
+    );
+
+    event Approval(
+        address indexed owner,
+        address indexed approved,
+        uint256 indexed tokenId
+    );
+
+    event ApprovalForAll(
+        address indexed owner,
+        address indexed operator,
+        bool approved
+    );
 }
 
 /// Represents a single gift card
@@ -80,17 +99,33 @@ pub struct FlexiGiftContract {
     /// Mapping from merchant index to merchant name
     merchant_names: StorageMap<U256, String>,
     
-    /// Merchant counter
+    /// Counter for merchant registrations
     merchant_counter: StorageU256,
     
-    /// Mapping from gift card ID to custom message
-    gift_card_messages: StorageMap<U256, String>,
-    
-    /// USDC token address (ERC20)
-    usdc_token: StorageAddress,
-    
-    /// Paused state
+    /// Pause state
     paused: StorageBool,
+    
+    /// Address of back-end USDC token
+    usdc_token: StorageAddress,
+
+    /// Mapping from gift card ID to message
+    gift_card_messages: StorageMap<U256, String>,
+
+    // --- NFT (ERC-721) Storage ---
+    /// Metadata Base URI
+    nft_base_uri: StorageMap<U256, String>, // Using a map for token-specific URIs if needed
+
+    /// Mapping from token ID to owner
+    token_owners: StorageMap<U256, StorageAddress>,
+
+    /// Mapping from owner to balance
+    token_balances: StorageMap<Address, StorageU256>,
+
+    /// Mapping from token ID to approved address
+    token_approvals: StorageMap<U256, StorageAddress>,
+
+    /// Mapping from owner to operator approvals
+    operator_approvals: StorageMap<Address, StorageMap<Address, StorageBool>>,
 }
 
 /// Errors
@@ -223,6 +258,18 @@ impl FlexiGiftContract {
             deliveryTimestamp: delivery_timestamp,
         });
 
+        // --- Mint NFT ---
+        self.token_owners.insert(gift_card_id, msg::sender());
+        let balance = self.token_balances.get(msg::sender());
+        self.token_balances.insert(msg::sender(), balance + U256::from(1));
+
+        // Log Transfer event (ERC-721)
+        evm::log(Transfer {
+            from: Address::ZERO,
+            to: msg::sender(),
+            tokenId: gift_card_id,
+        });
+
         Ok(gift_card_id)
     }
 
@@ -311,8 +358,9 @@ impl FlexiGiftContract {
         let mut gift_card = self.gift_cards.get(gift_card_id)
             .ok_or(FlexiGiftError::GiftCardNotFound)?;
 
-        // Only giver can refund
-        if msg::sender() != gift_card.giver {
+        // Only current owner can refund
+        let current_owner = self.owner_of(gift_card_id);
+        if msg::sender() != current_owner {
             return Err(FlexiGiftError::Unauthorized);
         }
 
@@ -368,6 +416,116 @@ impl FlexiGiftContract {
         self.merchant_names.get(merchant_id)
     }
 
+    // --- ERC-721 Implementation ---
+
+    /// Returns the NFT name
+    pub fn name(&self) -> String {
+        "FlexiGift Card".to_string()
+    }
+
+    /// Returns the NFT symbol
+    pub fn symbol(&self) -> String {
+        "FGIFT".to_string()
+    }
+
+    /// Returns the owner of the tokenId
+    pub fn owner_of(&self, token_id: U256) -> Address {
+        self.token_owners.get(token_id)
+    }
+
+    /// Returns the number of tokens owned by address
+    pub fn balance_of(&self, owner: Address) -> U256 {
+        self.token_balances.get(owner)
+    }
+
+    /// Returns the Approved address for a token
+    pub fn get_approved(&self, token_id: U256) -> Address {
+        self.token_approvals.get(token_id)
+    }
+
+    /// Returns if operator is approved for owner
+    pub fn is_approved_for_all(&self, owner: Address, operator: Address) -> bool {
+        self.operator_approvals.get(owner).get(operator)
+    }
+
+    /// Approve an address to transfer a token
+    pub fn approve(&mut self, to: Address, token_id: U256) -> Result<(), FlexiGiftError> {
+        let owner = self.owner_of(token_id);
+        if msg::sender() != owner && !self.is_approved_for_all(owner, msg::sender()) {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+        self.token_approvals.insert(token_id, to);
+        evm::log(Approval { owner, approved: to, tokenId: token_id });
+        Ok(())
+    }
+
+    /// Set approval for all for an operator
+    pub fn set_approval_for_all(&mut self, operator: Address, approved: bool) -> Result<(), FlexiGiftError> {
+        let mut owner_approvals = self.operator_approvals.get_mut(msg::sender());
+        owner_approvals.insert(operator, approved);
+        evm::log(ApprovalForAll { owner: msg::sender(), operator, approved });
+        Ok(())
+    }
+
+    /// Transfer a token from one address to another
+    pub fn transfer_from(&mut self, from: Address, to: Address, token_id: U256) -> Result<(), FlexiGiftError> {
+        let owner = self.owner_of(token_id);
+        if msg::sender() != owner && 
+           self.get_approved(token_id) != msg::sender() && 
+           !self.is_approved_for_all(owner, msg::sender()) 
+        {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+
+        if owner != from {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+
+        // Update ownership
+        self.token_owners.insert(token_id, to);
+        
+        // Update balances
+        let from_balance = self.token_balances.get(from);
+        let to_balance = self.token_balances.get(to);
+        self.token_balances.insert(from, from_balance - U256::from(1));
+        self.token_balances.insert(to, to_balance + U256::from(1));
+
+        // Clear approval
+        self.token_approvals.insert(token_id, Address::ZERO);
+
+        evm::log(Transfer { from, to, tokenId: token_id });
+
+        Ok(())
+    }
+
+    /// Safe transfer (simplified for MVP)
+    pub fn safe_transfer_from(&mut self, from: Address, to: Address, token_id: U256) -> Result<(), FlexiGiftError> {
+        self.transfer_from(from, to, token_id)
+    }
+
+    /// Returns the metadata URI for a token
+    pub fn token_uri(&self, token_id: U256) -> String {
+        // Here we build a dynamic URI that the frontend can use to generate the SVG
+        // For a hackathon, we can use a base API that fetches data from the contract
+        let base = self.nft_base_uri.get(token_id);
+        if base.is_empty() {
+             // Fallback to a default generator if no specific URI set
+             format!("https://api.flexigift.xyz/metadata/{}", token_id)
+        } else {
+            base
+        }
+    }
+
+    /// Set a custom base URI for a token (only giver/owner)
+    pub fn set_token_uri(&mut self, token_id: U256, uri: String) -> Result<(), FlexiGiftError> {
+        let owner = self.owner_of(token_id);
+        if msg::sender() != owner {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+        self.nft_base_uri.insert(token_id, uri);
+        Ok(())
+    }
+
     /// Pause contract (owner only)
     pub fn pause(&mut self) -> Result<(), FlexiGiftError> {
         if msg::sender() != self.owner.get() {
@@ -416,14 +574,15 @@ impl FlexiGiftContract {
         Ok(())
     }
 
-    /// Cancel scheduled delivery (only giver, before delivery)
+    /// Cancel scheduled delivery (only current owner, before delivery)
     pub fn cancel_scheduled_delivery(&mut self, gift_card_id: U256) -> Result<(), FlexiGiftError> {
         // Get gift card
         let mut gift_card = self.gift_cards.get(gift_card_id)
             .ok_or(FlexiGiftError::GiftCardNotFound)?;
 
-        // Only giver can cancel
-        if msg::sender() != gift_card.giver {
+        // Only current owner can cancel
+        let current_owner = self.owner_of(gift_card_id);
+        if msg::sender() != current_owner {
             return Err(FlexiGiftError::OnlyGiverCanCancel);
         }
 

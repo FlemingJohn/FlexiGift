@@ -9,6 +9,7 @@ const FLEXIGIFT_ABI = [
     'function refundGiftCard(uint256 giftCardId) external',
     'function deliverGiftCard(uint256 giftCardId) external',
     'function cancelScheduledDelivery(uint256 giftCardId) external',
+    'function ownerOf(uint256 tokenId) external view returns (address)',
     'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message, uint256 deliveryTimestamp, bool isDelivered))',
     'function addMerchant(string memory name) external returns (uint256)',
     'function getMerchantName(uint256 merchantId) external view returns (string)',
@@ -167,6 +168,38 @@ export class FlexiGiftContract {
         } catch (error: any) {
             console.error('Failed to cancel scheduled delivery:', error);
             throw new Error(error.message || 'Failed to cancel scheduled delivery');
+        }
+    }
+
+    // Get all NFTs owned by an address
+    async getMyNFTs(ownerAddress: string) {
+        try {
+            // Filter Transfer events where 'to' is ownerAddress
+            const filter = this.contract.filters.Transfer(null, ownerAddress);
+            const logs = await this.contract.queryFilter(filter);
+
+            // Get unique token IDs from receiver logs
+            const receivedTokenIds = Array.from(new Set(logs.map((log: any) => log.args.tokenId.toString())));
+
+            // Verify current ownership (to filter out tokens subsequently transferred away)
+            const cards = await Promise.all(
+                receivedTokenIds.map(async (id) => {
+                    try {
+                        const owner = await this.contract.ownerOf(BigInt(id));
+                        if (owner.toLowerCase() === ownerAddress.toLowerCase()) {
+                            return await this.getGiftCard(id);
+                        }
+                    } catch (e) {
+                        return null;
+                    }
+                    return null;
+                })
+            );
+
+            return cards.filter((c): c is any => c !== null);
+        } catch (error: any) {
+            console.error('Failed to get my NFTs:', error);
+            return [];
         }
     }
 }

@@ -5,6 +5,7 @@ import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
 import { FlexiGiftContract, getExplorerLink } from '../utils/contract';
+import { NFTCard } from '../components/NFTCard';
 
 interface GiftCardData {
     id: string;
@@ -195,67 +196,30 @@ export const RedeemPage: React.FC = () => {
                         <span>Back to Home</span>
                     </button>
 
-                    {/* Gift Card Details */}
-                    <div className="glass-card p-8 md:p-12 rounded-3xl mb-8">
-                        <div className="flex items-center space-x-4 mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
-                                <Gift className="text-white" size={32} />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl md:text-4xl font-bold text-white">Gift Card #{giftCardId}</h1>
-                                <p className="text-white/60 mt-1">
-                                    {giftCard.isActive && !isExpired ? 'Active' : isExpired ? 'Expired' : 'Inactive'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6 mb-8">
-                            <div className="p-6 bg-white/5 rounded-xl border border-white/10">
-                                <p className="text-white/60 text-sm mb-2">Original Amount</p>
-                                <p className="text-3xl font-bold text-white">${giftCard.amount} USDC</p>
-                            </div>
-                            <div className="p-6 bg-white/5 rounded-xl border border-white/10">
-                                <p className="text-white/60 text-sm mb-2">Remaining Balance</p>
-                                <p className="text-3xl font-bold text-green-400">${giftCard.remainingBalance} USDC</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                                <span className="text-white/60">Expiry Date</span>
-                                <span className="text-white font-semibold">
-                                    {new Date(giftCard.expiryTimestamp * 1000).toLocaleDateString()}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                                <span className="text-white/60">Created</span>
-                                <span className="text-white font-semibold">
-                                    {new Date(giftCard.createdAt * 1000).toLocaleDateString()}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                                <span className="text-white/60">Gift Giver</span>
-                                <span className="text-white font-mono text-sm">
-                                    {giftCard.giver.slice(0, 6)}...{giftCard.giver.slice(-4)}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Custom Message */}
-                        {giftCard.message && giftCard.message.trim() !== '' && (
-                            <div className="mt-6 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
-                                <div className="flex items-start space-x-3 mb-3">
-                                    <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <Gift className="text-green-400" size={20} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-white/60 text-sm mb-1">Message from {giftCard.giver.slice(0, 6)}...{giftCard.giver.slice(-4)}</p>
-                                        <p className="text-white text-lg italic leading-relaxed">"{giftCard.message}"</p>
-                                    </div>
+                    {/* Gift Card Details (NFT Card) */}
+                    <div className="flex justify-center mb-12">
+                        <NFTCard
+                            id={giftCardId || ''}
+                            amount={giftCard.amount}
+                            remainingBalance={giftCard.remainingBalance}
+                            giver={giftCard.giver}
+                            expiryDate={new Date(giftCard.expiryTimestamp * 1000).toLocaleDateString()}
+                            className="scale-110 md:scale-125 my-8"
+                        />
+                    </div>      {/* Custom Message */}
+                    {giftCard.message && giftCard.message.trim() !== '' && (
+                        <div className="mt-6 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+                            <div className="flex items-start space-x-3 mb-3">
+                                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <Gift className="text-green-400" size={20} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-white/60 text-sm mb-1">Message from {giftCard.giver.slice(0, 6)}...{giftCard.giver.slice(-4)}</p>
+                                    <p className="text-white text-lg italic leading-relaxed">"{giftCard.message}"</p>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Delivery Status (for scheduled gifts) */}
                     {giftCard.deliveryTimestamp && giftCard.deliveryTimestamp > 0 && (
@@ -480,7 +444,7 @@ export const RedeemPage: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 };
