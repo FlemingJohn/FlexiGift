@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, Calendar, DollarSign, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, MessageSquare, Clock } from 'lucide-react';
+import { ArrowLeft, Gift, Calendar, DollarSign, Loader2, CheckCircle, ExternalLink, AlertCircle, MessageSquare, Clock } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -11,7 +11,6 @@ export const CreatePage: React.FC = () => {
     const { signer, isConnected, address } = useWallet();
     const [amount, setAmount] = useState('');
     const [expiryDays, setExpiryDays] = useState('30');
-    const [selectedMerchants, setSelectedMerchants] = useState<number[]>([0, 1, 2]);
     const [message, setMessage] = useState('');
     const [isScheduled, setIsScheduled] = useState(false);
     const [deliveryDateTime, setDeliveryDateTime] = useState('');
@@ -20,19 +19,6 @@ export const CreatePage: React.FC = () => {
     const [giftCardId, setGiftCardId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const merchants = [
-        { id: 0, name: 'Amazon' },
-        { id: 1, name: 'Uber' },
-        { id: 2, name: 'Zomato' },
-        { id: 3, name: 'Starbucks' },
-        { id: 4, name: 'Netflix' },
-    ];
-
-    const toggleMerchant = (id: number) => {
-        setSelectedMerchants(prev =>
-            prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
-        );
-    };
 
     const handleCreate = async () => {
         if (!signer || !isConnected) {
@@ -45,10 +31,6 @@ export const CreatePage: React.FC = () => {
             return;
         }
 
-        if (selectedMerchants.length === 0) {
-            setError('Please select at least one merchant');
-            return;
-        }
 
         // Validate message length
         if (message.length > 280) {
@@ -90,7 +72,6 @@ export const CreatePage: React.FC = () => {
             const result = await contract.createGiftCard(
                 amount,
                 parseInt(expiryDays),
-                selectedMerchants,
                 message,
                 deliveryTimestamp
             );
@@ -108,7 +89,6 @@ export const CreatePage: React.FC = () => {
     const handleReset = () => {
         setAmount('');
         setExpiryDays('30');
-        setSelectedMerchants([0, 1, 2]);
         setMessage('');
         setIsScheduled(false);
         setDeliveryDateTime('');
@@ -273,8 +253,8 @@ export const CreatePage: React.FC = () => {
                                         type="button"
                                         onClick={() => setIsScheduled(false)}
                                         className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${!isScheduled
-                                                ? 'bg-green-500 text-white'
-                                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                            ? 'bg-green-500 text-white'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
                                             }`}
                                     >
                                         Send Now
@@ -283,8 +263,8 @@ export const CreatePage: React.FC = () => {
                                         type="button"
                                         onClick={() => setIsScheduled(true)}
                                         className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${isScheduled
-                                                ? 'bg-green-500 text-white'
-                                                : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                            ? 'bg-green-500 text-white'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
                                             }`}
                                     >
                                         Schedule for Later
@@ -353,27 +333,6 @@ export const CreatePage: React.FC = () => {
                                 </p>
                             </div>
 
-                            {/* Merchant Selection */}
-                            <div className="mb-8">
-                                <label className="block text-white font-semibold mb-4 text-lg flex items-center space-x-2">
-                                    <Store size={24} />
-                                    <span>Allowed Merchants</span>
-                                </label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {merchants.map((merchant) => (
-                                        <button
-                                            key={merchant.id}
-                                            onClick={() => toggleMerchant(merchant.id)}
-                                            className={`p-4 rounded-xl border-2 transition-all font-semibold ${selectedMerchants.includes(merchant.id)
-                                                ? 'bg-green-500/20 border-green-500 text-white'
-                                                : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
-                                                }`}
-                                        >
-                                            {merchant.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
 
                             {/* Error Message */}
                             {error && (

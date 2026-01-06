@@ -29,12 +29,11 @@
 * **10x cheaper gas fees** than Ethereum L1
 * **Stylus contracts** (Rust → WASM) = better performance & memory efficiency
 * **Real-time analytics dashboard** for transparency
-* Smart contracts:
-  * Lock funds securely
-  * Track balance transparently
-  * Auto-refund unused money
-* Flexible spending = less waste
-* This is not forced Web3 — blockchain adds real value
+*   Lock funds securely
+*   Track balance transparently
+*   Auto-refund unused money
+*   Smart Gifting = Less waste and more personal touch
+*   This is not forced Web3 — blockchain adds real value
 
 ### Arbitrum Hackathon Categories
 
@@ -59,7 +58,6 @@ This project targets **3 categories**:
 
    * Amount: `50 USDC`
    * Expiry / refund date: `30 days`
-   * Allowed merchants: `Uber, Zomato, Amazon`
    * Optional message: *"Happy Birthday 🎉"*
 
 4. Clicks **Create**
@@ -80,14 +78,11 @@ A digital gift card link is generated and shared with the recipient.
 
    * Gift amount: `50 USDC`
    * Remaining balance: `50 USDC`
-   * Allowed merchants
    * Expiry countdown
 
-3. Selects a merchant (e.g., Uber)
+3. Clicks **Redeem**
 
-4. Spends `10 USDC`
-
-   * Stylus contract releases funds
+   * Stylus contract releases funds to the connected wallet
    * Balance updates automatically
 
 ✅ **Result:**
@@ -129,7 +124,7 @@ Over **20% of gift cards go unused** due to brand restrictions and expiry, wasti
 A blockchain-based gift card system where funds are:
 
 * Locked in Stylus smart contracts (Rust → WASM)
-* Spent across multiple merchants
+* Redeemable directly to recipient wallets
 * Automatically refundable if unused
 * Supported by analytics dashboard
 
@@ -149,14 +144,14 @@ A blockchain-based gift card system where funds are:
 
 * Create gift card with USDC
 * Set expiry / refund date
-* Choose allowed merchants
+* Personal message & scheduling
 * Powered by Stylus contracts
 
 ### 💳 Gift Redemption
 
 * View balance in real-time
-* Spend partially
-* Multi-merchant support
+* Direct wallet redemption
+* NFT-based ownership
 
 ### 🔄 Refund Logic
 
@@ -264,7 +259,6 @@ A blockchain-based gift card system where funds are:
 
 1. **Stylus Smart Contracts** (Rust)
    - GiftCard.rs
-   - MerchantRegistry.rs
    - Comprehensive tests
 
 3. **Analytics Dashboard** (Next.js)

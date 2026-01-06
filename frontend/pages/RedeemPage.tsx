@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, DollarSign, Calendar, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw, Clock, Tag, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Gift, DollarSign, Calendar, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw, Clock, Tag, ArrowRight } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -30,7 +30,6 @@ export const RedeemPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [redeemAmount, setRedeemAmount] = useState('');
-    const [selectedMerchant, setSelectedMerchant] = useState<number>(0);
     const [isRedeeming, setIsRedeeming] = useState(false);
     const [isRefunding, setIsRefunding] = useState(false);
     const [isListing, setIsListing] = useState(false);
@@ -38,13 +37,6 @@ export const RedeemPage: React.FC = () => {
     const [isListed, setIsListed] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
 
-    const merchants = [
-        { id: 0, name: 'Amazon' },
-        { id: 1, name: 'Uber' },
-        { id: 2, name: 'Zomato' },
-        { id: 3, name: 'Starbucks' },
-        { id: 4, name: 'Netflix' },
-    ];
 
     // Load gift card data
     useEffect(() => {
@@ -100,7 +92,7 @@ export const RedeemPage: React.FC = () => {
 
         try {
             const contract = new FlexiGiftContract(signer);
-            const result = await contract.redeemGiftCard(giftCardId, redeemAmount, selectedMerchant);
+            const result = await contract.redeemGiftCard(giftCardId, redeemAmount);
             setTxHash(result.txHash);
 
             // Reload gift card data
@@ -388,26 +380,6 @@ export const RedeemPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mb-6">
-                                <label className="block text-white font-semibold mb-3 flex items-center space-x-2">
-                                    <Store size={24} />
-                                    <span>Select Merchant</span>
-                                </label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {merchants.map((merchant) => (
-                                        <button
-                                            key={merchant.id}
-                                            onClick={() => setSelectedMerchant(merchant.id)}
-                                            className={`p-4 rounded-xl border-2 transition-all font-semibold ${selectedMerchant === merchant.id
-                                                ? 'bg-green-500/20 border-green-500 text-white'
-                                                : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'
-                                                }`}
-                                        >
-                                            {merchant.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
 
                             {error && (
                                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start space-x-3">

@@ -4,15 +4,13 @@ import { CONTRACTS } from '../config';
 
 // Placeholder ABI - will be replaced with actual ABI from cargo stylus export-abi
 const FLEXIGIFT_ABI = [
-    'function createGiftCard(uint256 amount, uint256 expiryDays, uint256[] memory merchantIndices, string memory message, uint256 deliveryTimestamp) external returns (uint256)',
-    'function redeemGiftCard(uint256 giftCardId, uint256 amount, uint256 merchantIndex) external',
+    'function createGiftCard(uint256 amount, uint256 expiryDays, string memory message, uint256 deliveryTimestamp) external returns (uint256)',
+    'function redeemGiftCard(uint256 giftCardId, uint256 amount) external',
     'function refundGiftCard(uint256 giftCardId) external',
     'function deliverGiftCard(uint256 giftCardId) external',
     'function cancelScheduledDelivery(uint256 giftCardId) external',
     'function ownerOf(uint256 tokenId) external view returns (address)',
     'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message, uint256 deliveryTimestamp, bool isDelivered))',
-    'function addMerchant(string memory name) external returns (uint256)',
-    'function getMerchantName(uint256 merchantId) external view returns (string)',
     'function listGiftCard(uint256 tokenId, uint256 price) external',
     'function buyGiftCard(uint256 tokenId) external',
     'function cancelListing(uint256 tokenId) external',
@@ -44,7 +42,6 @@ export class FlexiGiftContract {
     async createGiftCard(
         amountUSDC: string,
         expiryDays: number,
-        merchantIndices: number[],
         message: string = '',
         deliveryTimestamp: number = 0  // 0 = immediate, >0 = scheduled
     ) {
@@ -60,7 +57,6 @@ export class FlexiGiftContract {
             const tx = await this.contract.createGiftCard(
                 amount,
                 BigInt(expiryDays),
-                merchantIndices,
                 message,
                 BigInt(deliveryTimestamp)
             );
@@ -91,13 +87,12 @@ export class FlexiGiftContract {
     }
 
     // Redeem a gift card
-    async redeemGiftCard(giftCardId: string, amountUSDC: string, merchantIndex: number) {
+    async redeemGiftCard(giftCardId: string, amountUSDC: string) {
         try {
             const amount = BigInt(parseFloat(amountUSDC) * 1_000_000);
             const tx = await this.contract.redeemGiftCard(
                 BigInt(giftCardId),
-                amount,
-                BigInt(merchantIndex)
+                amount
             );
             const receipt = await tx.wait();
             return { txHash: receipt.hash };

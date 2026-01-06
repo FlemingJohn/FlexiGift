@@ -30,11 +30,6 @@ sol! {
         uint256 refundAmount
     );
 
-    event MerchantAdded(
-        uint256 indexed giftCardId,
-        string merchantName
-    );
-
     event GiftCardDelivered(
         uint256 indexed giftCardId,
         uint256 deliveredAt
@@ -120,16 +115,7 @@ pub struct FlexiGiftContract {
     
     /// Mapping from gift card ID to GiftCard struct
     gift_cards: StorageMap<U256, GiftCard>,
-    
-    /// Mapping from gift card ID to allowed merchants (stored as indices)
-    allowed_merchants: StorageMap<U256, StorageVec<StorageU256>>,
-    
-    /// Mapping from merchant index to merchant name
-    merchant_names: StorageMap<U256, String>,
-    
-    /// Counter for merchant registrations
-    merchant_counter: StorageU256,
-    
+
     /// Pause state
     paused: StorageBool,
     
@@ -171,7 +157,6 @@ pub enum FlexiGiftError {
     InsufficientBalance,
     TransferFailed,
     Paused,
-    MerchantNotAllowed,
     MessageTooLong,
     NotYetDelivered,
     AlreadyDelivered,
@@ -188,7 +173,6 @@ impl FlexiGiftContract {
         self.owner.set(msg::sender());
         self.usdc_token.set(usdc_address);
         self.gift_card_counter.set(U256::from(0));
-        self.merchant_counter.set(U256::from(0));
         self.paused.set(false);
         Ok(())
     }
@@ -196,14 +180,12 @@ impl FlexiGiftContract {
     /// Create a new gift card
     /// @param amount: Amount of USDC to lock
     /// @param expiry_days: Number of days until expiry
-    /// @param merchant_indices: Array of allowed merchant indices
     /// @param message: Optional custom message (max 280 characters)
     /// @param delivery_timestamp: Unix timestamp for delivery (0 = immediate)
     pub fn create_gift_card(
         &mut self,
         amount: U256,
         expiry_days: U256,
-        merchant_indices: Vec<U256>,
         message: String,
         delivery_timestamp: U256,
     ) -> Result<U256, FlexiGiftError> {
@@ -271,12 +253,6 @@ impl FlexiGiftContract {
         // Store message separately for efficient access
         self.gift_card_messages.insert(gift_card_id, message.clone());
 
-        // Store allowed merchants
-        let mut merchants = self.allowed_merchants.get_mut(gift_card_id);
-        for merchant_idx in merchant_indices {
-            merchants.push(StorageU256::new(merchant_idx));
-        }
-
         // TODO: Transfer USDC from sender to contract
         // This requires ERC20 interface implementation
 
@@ -308,12 +284,10 @@ impl FlexiGiftContract {
     /// Redeem a gift card
     /// @param gift_card_id: ID of the gift card
     /// @param amount: Amount to redeem
-    /// @param merchant_index: Index of the merchant
     pub fn redeem_gift_card(
         &mut self,
         gift_card_id: U256,
         amount: U256,
-        merchant_index: U256,
     ) -> Result<(), FlexiGiftError> {
         // Check if paused
         if self.paused.get() {
@@ -343,19 +317,6 @@ impl FlexiGiftContract {
         // Check balance
         if amount > gift_card.remaining_balance {
             return Err(FlexiGiftError::InsufficientBalance);
-        }
-
-        // Check if merchant is allowed
-        let merchants = self.allowed_merchants.get(gift_card_id);
-        let mut merchant_allowed = false;
-        for i in 0..merchants.len() {
-            if merchants.get(i).unwrap().get() == merchant_index {
-                merchant_allowed = true;
-                break;
-            }
-        }
-        if !merchant_allowed {
-            return Err(FlexiGiftError::MerchantNotAllowed);
         }
 
         // Update balance
@@ -427,25 +388,6 @@ impl FlexiGiftContract {
     pub fn get_gift_card(&self, gift_card_id: U256) -> Result<GiftCard, FlexiGiftError> {
         self.gift_cards.get(gift_card_id)
             .ok_or(FlexiGiftError::GiftCardNotFound)
-    }
-
-    /// Add a merchant to the registry
-    pub fn add_merchant(&mut self, name: String) -> Result<U256, FlexiGiftError> {
-        // Only owner can add merchants
-        if msg::sender() != self.owner.get() {
-            return Err(FlexiGiftError::Unauthorized);
-        }
-
-        let merchant_id = self.merchant_counter.get() + U256::from(1);
-        self.merchant_counter.set(merchant_id);
-        self.merchant_names.insert(merchant_id, name.clone());
-
-        Ok(merchant_id)
-    }
-
-    /// Get merchant name
-    pub fn get_merchant_name(&self, merchant_id: U256) -> Option<String> {
-        self.merchant_names.get(merchant_id)
     }
 
     // --- ERC-721 Implementation ---

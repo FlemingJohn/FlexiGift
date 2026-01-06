@@ -36,6 +36,7 @@ graph TB
     Ethers -- "JSON-RPC (Sepolia)" --> CoreLogic
     CoreLogic --- Storage
     Mkt -. "Atomic Swap" .-> USDC
+    CoreLogic -- "Direct Redemption" --> USDC
     Pages -- "Metadata API" --> IPFS
 
     %% Applying Classes

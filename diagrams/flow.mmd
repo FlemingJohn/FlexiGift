@@ -2,8 +2,7 @@ sequenceDiagram
     autonumber
     participant G as 🟢 Giver
     participant C as 🦀 Stylus Contract
-    participant R as 🎁 Recipient
-    participant M as 🏪 Merchant
+    participant R as 🎁 Recipient (Holder)
     participant B as 🛒 Marketplace Buyer
 
     Note over G, C: 1. Creation & Escrow
@@ -14,13 +13,13 @@ sequenceDiagram
     Note over C, R: 2. Redemption Path
     alt Immediate Access
         R->>C: redeemGiftCard(Amount)
-        C->>M: Transfer USDC (Balance Settlement)
+        C->>R: Unlock & Transfer USDC
     else Scheduled (Timelock)
         Note over G: Wait for Timestamp
         G->>C: deliverGiftCard()
         Note right of C: Unlock NFT Logic
         R->>C: redeemGiftCard(Amount)
-        C->>M: Transfer USDC
+        C->>R: Unlock & Transfer USDC
     end
 
     Note over G, B: 3. Secondary Trade
@@ -28,4 +27,4 @@ sequenceDiagram
     B->>C: buyGiftCard(Price)
     Note right of C: Atomic Swap:<br/>NFT to Buyer<br/>USDC to Seller
     B->>C: redeemGiftCard()
-    C->>M: Settlement
+    C->>B: Unlock & Transfer USDC
