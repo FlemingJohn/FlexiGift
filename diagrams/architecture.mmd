@@ -1,0 +1,51 @@
+graph TB
+    %% Class Definitions for Premium Styling
+    classDef frontend fill:#111,stroke:#22c55e,stroke-width:2px,color:#fff;
+    classDef blockchain fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef stylus fill:#064e3b,stroke:#22c55e,stroke-width:2px,color:#fff,font-weight:bold;
+    classDef infra fill:#1e293b,stroke:#64748b,stroke-width:1px,color:#94a3b8;
+    classDef external fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+
+    subgraph FE ["&nbsp;&nbsp;FRONTEND (REACT + VITE)&nbsp;&nbsp;"]
+        direction TB
+        UI["Visual Components<br/>(Tailwind + Lucide)"]
+        Pages["App Pages<br/>(Gallery, Marketplace, Create)"]
+        Store["State Management<br/>(useWallet + useContract)"]
+        Ethers["Ethers.js v6"]
+    end
+
+    subgraph SC ["&nbsp;&nbsp;ARBITRUM STYLUS (WASM)&nbsp;&nbsp;"]
+        direction TB
+        subgraph CoreLogic ["&nbsp;Core Logic (Rust)&nbsp;"]
+            Core["Gift Card Logic"]
+            NFT["ERC-721 Engine"]
+            Mkt["Marketplace Escrow"]
+        end
+        Storage[("Stylus Optimized<br/>Storage Mapping")]
+    end
+
+    subgraph EXT ["&nbsp;&nbsp;EXTERNAL ECOSYSTEM&nbsp;&nbsp;"]
+        USDC["USDC Stablecoin<br/>(ERC-20)"]
+        IPFS["IPFS Storage<br/>(Metadata)"]
+    end
+
+    %% Connections
+    UI --> Pages
+    Pages --> Store
+    Store --> Ethers
+    Ethers -- "JSON-RPC (Sepolia)" --> CoreLogic
+    CoreLogic --- Storage
+    Mkt -. "Atomic Swap" .-> USDC
+    Pages -- "Metadata API" --> IPFS
+
+    %% Applying Classes
+    class UI,Pages,Store,Ethers frontend;
+    class CoreLogic,Core,NFT,Mkt blockchain;
+    class SC,CoreLogic stylus;
+    class USDC,EXT external;
+    class IPFS infra;
+
+    %% Subgraph Styling
+    style FE fill:none,stroke:#22c55e,stroke-dasharray: 5 5
+    style SC fill:none,stroke:#3b82f6,stroke-dasharray: 5 5
+    style EXT fill:none,stroke:#818cf8,stroke-dasharray: 5 5
