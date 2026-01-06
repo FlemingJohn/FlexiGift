@@ -17,24 +17,33 @@ Over **20% of gift cards go unused annually**, wasting billions of dollars due t
 
 FlexiGift uses **Arbitrum Stylus** (Rust → WASM) to create:
 - **Flexible gift cards** - Spend across multiple merchants
+- **NFT Digital Assets** - Every gift card is a unique, transferable NFT (ERC-721)
 - **Auto-refunds** - Unused balances return after expiry
 - **10x cheaper gas** - WASM efficiency vs traditional EVM
-- **Full transparency** - All transactions on-chain
+- **Secondary Market** - Sell unused credits at a discount in the built-in Marketplace
 
 ## 🏗️ Architecture
 
 ### Smart Contracts (Rust + Stylus)
-- **GiftCard Contract**: Create, redeem, and refund logic
-- **Merchant Registry**: Allowlist management
-- **USDC Integration**: Stablecoin-based gift cards
+- **GiftCard Core**: Creation, redemption, and lifecycle logic
+- **ERC-721 Logic**: Native NFT implementation in Rust
+- **Marketplace Logic**: Non-custodial listing and atomic settlement logic
+- **Merchant Registry**: Merchant allowlist management
+- **USDC Integration**: Stablecoin-based value storage
 
 ### Frontend (React + Vite)
-- Modern landing page
-- Wallet connection (MetaMask)
-- Gift card creation/redemption UI
+- **Premium Glassmorphic UI**: Dynamic NFT visualization
+- **Asset Gallery**: Personal dashboard for NFT management
+- **Marketplace Page**: Peer-to-peer trading interface
+- **Scheduled Delivery**: Future-dated gifting with manual trigger UI
 
 ### Developer Tools
 - Analytics dashboard (coming soon)
+
+### 📊 System Flow
+Detailed system flows and architecture diagrams can be found in the `/diagrams` folder:
+- [Architecture Diagram](diagrams/architecture.mmd)
+- [System Flow Diagram](diagrams/flow.mmd)
 
 ## 🚀 Quick Start
 
@@ -74,6 +83,7 @@ npm run dev
 ## 📚 Documentation
 
 - [Setup Guide](SETUP.md) - Complete development environment setup
+- [Implementation Walkthrough](C:/Users/felix/.gemini/antigravity/brain/3b64ba1f-9ac5-41c2-957f-91b3dfbe54db/walkthrough.md) - Deep dive into feature implementation
 - [Stylus Guide](Guides/STYLUS_GUIDE.md) - Smart contract development
 - [PRD](Guides/PRD.md) - Product requirements
 - [Project Structure](PROJECT_STRUCTURE.md) - Codebase organization
@@ -84,18 +94,24 @@ npm run dev
 |-----------|-----------|
 | Smart Contracts | Rust + Stylus SDK |
 | Blockchain | Arbitrum Sepolia / Arbitrum One |
-| Token | USDC (ERC-20) |
+| Token Standards | ERC-20 (USDC), ERC-721 (NFT) |
 | Frontend | React + Vite + Tailwind CSS |
+| UI Icons | Lucide React |
 | Web3 | ethers.js v6 |
 | Deployment | cargo-stylus CLI |
 
 ## 📊 Key Features
 
-- ✅ **Rust Performance**: 10x cheaper gas than Solidity
+- ✅ **NFT Ownership**: Gift cards are true digital assets transferable between wallets
+- ✅ **Scheduled Delivery**: Schedule gifts for birthdays/holidays with high-accuracy timestamps
+- ✅ **Custom Messaging**: Add heartfelt on-chain notes (up to 280 chars)
+- ✅ **Marketplace**: Built-in P2P secondary market for gift card liquidity
+- ✅ **Rust Performance**: 10x cheaper gas than Solidity via Stylus WASM execution
 - ✅ **Interoperable**: Full compatibility with Solidity contracts
 - ✅ **Secure**: Rust's compile-time safety guarantees
 - ✅ **Transparent**: All transactions verifiable on-chain
 - ✅ **Developer-Friendly**: Comprehensive documentation
+- ✅ **Premium UX**: High-end glassmorphic design and real-time state updates
 
 ## 🎯 Hackathon Categories
 

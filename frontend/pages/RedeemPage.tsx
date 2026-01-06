@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Gift, DollarSign, Calendar, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw, Clock } from 'lucide-react';
+import { ArrowLeft, Gift, DollarSign, Calendar, Store, Loader2, CheckCircle, ExternalLink, AlertCircle, RefreshCw, Clock, Tag, ArrowRight } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { ParticlesBackground } from '../components/ParticlesBackground';
 import { useWallet } from '../hooks/useWallet';
@@ -33,6 +33,9 @@ export const RedeemPage: React.FC = () => {
     const [selectedMerchant, setSelectedMerchant] = useState<number>(0);
     const [isRedeeming, setIsRedeeming] = useState(false);
     const [isRefunding, setIsRefunding] = useState(false);
+    const [isListing, setIsListing] = useState(false);
+    const [listPrice, setListPrice] = useState('');
+    const [isListed, setIsListed] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
 
     const merchants = [
@@ -55,6 +58,17 @@ export const RedeemPage: React.FC = () => {
                 const contract = new FlexiGiftContract(signer);
                 const data = await contract.getGiftCard(giftCardId);
                 setGiftCard(data);
+
+                // Check if listed
+                try {
+                    const [_tid, _seller, price, active] = await contract.getListing(giftCardId);
+                    setIsListed(active);
+                    if (active) {
+                        setListPrice((Number(price) / 1_000_000).toString());
+                    }
+                } catch (e) {
+                    setIsListed(false);
+                }
             } catch (err: any) {
                 console.error('Failed to load gift card:', err);
                 setError(err.message || 'Failed to load gift card');
@@ -131,6 +145,45 @@ export const RedeemPage: React.FC = () => {
             setError(err.message || 'Failed to refund gift card');
         } finally {
             setIsRefunding(false);
+        }
+    };
+
+    const handleList = async () => {
+        if (!signer || !giftCardId || !listPrice) return;
+
+        setIsListing(true);
+        setError(null);
+
+        try {
+            const contract = new FlexiGiftContract(signer);
+            await contract.listGiftCard(giftCardId, listPrice);
+            setIsListed(true);
+            alert('Gift card listed successfully in the marketplace!');
+        } catch (err: any) {
+            console.error('Failed to list:', err);
+            setError(err.message || 'Failed to list gift card');
+        } finally {
+            setIsListing(false);
+        }
+    };
+
+    const handleCancelListing = async () => {
+        if (!signer || !giftCardId) return;
+
+        setIsListing(true);
+        setError(null);
+
+        try {
+            const contract = new FlexiGiftContract(signer);
+            await contract.cancelListing(giftCardId);
+            setIsListed(false);
+            setListPrice('');
+            alert('Listing cancelled successfully.');
+        } catch (err: any) {
+            console.error('Failed to cancel listing:', err);
+            setError(err.message || 'Failed to cancel listing');
+        } finally {
+            setIsListing(false);
         }
     };
 
@@ -398,6 +451,71 @@ export const RedeemPage: React.FC = () => {
                                     </>
                                 )}
                             </button>
+                        </div>
+                    )}
+
+                    {/* Marketplace Listing Section (For Owner) */}
+                    {giftCard.isActive && !isExpired && isGiver && (
+                        <div className="glass-card p-8 md:p-12 rounded-3xl mb-8 border border-green-500/20">
+                            <div className="flex items-center space-x-3 mb-6">
+                                <Tag className="text-green-400" size={24} />
+                                <h2 className="text-2xl font-bold text-white">Marketplace Listing</h2>
+                            </div>
+
+                            {isListed ? (
+                                <div className="space-y-6">
+                                    <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl flex justify-between items-center">
+                                        <div>
+                                            <p className="text-white/60 text-sm mb-1">Currently listed at</p>
+                                            <p className="text-2xl font-bold text-white">${listPrice} USDC</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                                                ACTIVE LISTING
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleCancelListing}
+                                        disabled={isListing}
+                                        className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all flex items-center justify-center space-x-2 border border-white/10"
+                                    >
+                                        {isListing ? <Loader2 className="animate-spin" size={20} /> : "Remove from Marketplace"}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <p className="text-white/60">
+                                        Sell this gift card to others. Enter the price you want to receive in USDC.
+                                    </p>
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
+                                            <DollarSign size={20} />
+                                        </div>
+                                        <input
+                                            type="number"
+                                            value={listPrice}
+                                            onChange={(e) => setListPrice(e.target.value)}
+                                            placeholder="Set your price (e.g. 45.00)"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-green-500/50 transition-all outline-none"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleList}
+                                        disabled={isListing || !listPrice}
+                                        className="w-full py-5 bg-green-500 hover:bg-green-600 disabled:bg-white/10 disabled:cursor-not-allowed text-black font-black rounded-xl transition-all shadow-lg shadow-green-500/20 flex items-center justify-center space-x-2"
+                                    >
+                                        {isListing ? (
+                                            <Loader2 className="animate-spin" size={20} />
+                                        ) : (
+                                            <>
+                                                <span>List for Sale</span>
+                                                <ArrowRight size={20} />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

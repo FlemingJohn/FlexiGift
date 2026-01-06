@@ -13,11 +13,16 @@ const FLEXIGIFT_ABI = [
     'function getGiftCard(uint256 giftCardId) external view returns (tuple(uint256 id, address giver, uint256 amount, uint256 remainingBalance, uint256 expiryTimestamp, bool isActive, uint256 createdAt, string message, uint256 deliveryTimestamp, bool isDelivered))',
     'function addMerchant(string memory name) external returns (uint256)',
     'function getMerchantName(uint256 merchantId) external view returns (string)',
+    'function listGiftCard(uint256 tokenId, uint256 price) external',
+    'function buyGiftCard(uint256 tokenId) external',
+    'function cancelListing(uint256 tokenId) external',
+    'function getListing(uint256 tokenId) external view returns (uint256 tokenId, address seller, uint256 price, bool isActive)',
     'event GiftCardCreated(uint256 indexed giftCardId, address indexed giver, uint256 amount, uint256 expiryTimestamp, string message, uint256 deliveryTimestamp)',
     'event GiftCardRedeemed(uint256 indexed giftCardId, address indexed recipient, uint256 amount, uint256 remainingBalance)',
     'event GiftCardRefunded(uint256 indexed giftCardId, address indexed giver, uint256 refundAmount)',
-    'event GiftCardDelivered(uint256 indexed giftCardId, uint256 deliveredAt)',
     'event ScheduledDeliveryCancelled(uint256 indexed giftCardId, address indexed giver)',
+    'event GiftCardListed(uint256 indexed tokenId, address indexed seller, uint256 price)',
+    'event GiftCardSold(uint256 indexed tokenId, address indexed seller, address indexed buyer, uint256 price)',
 ];
 
 const USDC_ABI = [
@@ -199,6 +204,98 @@ export class FlexiGiftContract {
             return cards.filter((c): c is any => c !== null);
         } catch (error: any) {
             console.error('Failed to get my NFTs:', error);
+            return [];
+        }
+    }
+
+    // --- Marketplace Methods ---
+
+    // List a gift card
+    async listGiftCard(tokenId: string, priceUSDC: string) {
+        try {
+            const price = BigInt(parseFloat(priceUSDC) * 1_000_000);
+            const tx = await this.contract.listGiftCard(BigInt(tokenId), price);
+            const receipt = await tx.wait();
+            return { txHash: receipt.hash };
+        } catch (error: any) {
+            console.error('Failed to list gift card:', error);
+            throw new Error(error.message || 'Failed to list gift card');
+        }
+    }
+
+    // Buy a gift card
+    async buyGiftCard(tokenId: string, priceUSDC: string) {
+        try {
+            const price = BigInt(parseFloat(priceUSDC) * 1_000_000);
+
+            // Approve USDC spending first
+            const approveTx = await this.usdcContract.approve(CONTRACTS.FLEXIGIFT, price);
+            await approveTx.wait();
+
+            const tx = await this.contract.buyGiftCard(BigInt(tokenId));
+            const receipt = await tx.wait();
+            return { txHash: receipt.hash };
+        } catch (error: any) {
+            console.error('Failed to buy gift card:', error);
+            throw new Error(error.message || 'Failed to buy gift card');
+        }
+    }
+
+    // Cancel listing
+    async cancelListing(tokenId: string) {
+        try {
+            const tx = await this.contract.cancelListing(BigInt(tokenId));
+            const receipt = await tx.wait();
+            return { txHash: receipt.hash };
+        } catch (error: any) {
+            console.error('Failed to cancel listing:', error);
+            throw new Error(error.message || 'Failed to cancel listing');
+        }
+    }
+
+    // Get listing details
+    async getListing(tokenId: string) {
+        try {
+            return await this.contract.getListing(BigInt(tokenId));
+        } catch (error: any) {
+            console.error('Failed to get listing:', error);
+            throw new Error(error.message || 'Failed to get listing');
+        }
+    }
+
+    // Get all active listings
+    async getAllListings() {
+        try {
+            // Filter GiftCardListed events
+            const filter = this.contract.filters.GiftCardListed();
+            const logs = await this.contract.queryFilter(filter);
+
+            // Get unique token IDs from listing logs
+            const tokenIds = Array.from(new Set(logs.map((log: any) => log.args.tokenId.toString())));
+
+            // Get listing details and card details for each
+            const listings = await Promise.all(
+                tokenIds.map(async (id) => {
+                    try {
+                        const [tid, seller, price, isActive] = await this.contract.getListing(BigInt(id));
+                        if (isActive) {
+                            const card = await this.getGiftCard(id);
+                            return {
+                                ...card,
+                                seller,
+                                price: (Number(price) / 1_000_000).toFixed(2),
+                            };
+                        }
+                    } catch (e) {
+                        return null;
+                    }
+                    return null;
+                })
+            );
+
+            return listings.filter((l): l is any => l !== null);
+        } catch (error: any) {
+            console.error('Failed to get listings:', error);
             return [];
         }
     }

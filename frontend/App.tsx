@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { CreatePage } from './pages/CreatePage';
 import { RedeemPage } from './pages/RedeemPage';
 import { GalleryPage } from './pages/GalleryPage';
+import { MarketplacePage } from './pages/MarketplacePage';
 
 export const App: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ export const App: React.FC = () => {
         <Route path="/create" element={<CreatePage />} />
         <Route path="/redeem/:giftCardId" element={<RedeemPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
       </Routes>
     </BrowserRouter>
   );

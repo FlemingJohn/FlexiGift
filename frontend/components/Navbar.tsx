@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { Gift, Grid, Plus } from 'lucide-react';
+import { Gift, Grid, Plus, ShoppingBag } from 'lucide-react';
 import { WalletConnect } from './WalletConnect';
 import { Link } from 'react-router-dom';
 
@@ -20,6 +19,10 @@ export const Navbar: React.FC = () => {
           <Link to="/gallery" className="text-white/60 hover:text-white font-semibold transition-colors flex items-center space-x-1">
             <Grid size={18} />
             <span>My NFTs</span>
+          </Link>
+          <Link to="/marketplace" className="text-white/60 hover:text-white font-semibold transition-colors flex items-center space-x-1">
+            <ShoppingBag size={18} />
+            <span>Marketplace</span>
           </Link>
           <Link to="/create" className="text-white/60 hover:text-white font-semibold transition-colors flex items-center space-x-1">
             <Plus size={18} />

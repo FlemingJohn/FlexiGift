@@ -63,6 +63,25 @@ sol! {
         address indexed operator,
         bool approved
     );
+
+    // Marketplace Events
+    event GiftCardListed(
+        uint256 indexed tokenId,
+        address indexed seller,
+        uint256 price
+    );
+
+    event GiftCardSold(
+        uint256 indexed tokenId,
+        address indexed seller,
+        address indexed buyer,
+        uint256 price
+    );
+
+    event ListingCancelled(
+        uint256 indexed tokenId,
+        address indexed seller
+    );
 }
 
 /// Represents a single gift card
@@ -78,6 +97,15 @@ pub struct GiftCard {
     pub message: String,
     pub delivery_timestamp: U256,  // 0 = immediate, >0 = scheduled
     pub is_delivered: bool,         // false until delivery time
+}
+
+/// Represents a marketplace listing
+#[derive(SolidityStruct)]
+pub struct Listing {
+    pub token_id: U256,
+    pub seller: Address,
+    pub price: U256,
+    pub is_active: bool,
 }
 
 /// Main FlexiGift contract storage
@@ -126,6 +154,10 @@ pub struct FlexiGiftContract {
 
     /// Mapping from owner to operator approvals
     operator_approvals: StorageMap<Address, StorageMap<Address, StorageBool>>,
+
+    // --- Marketplace Storage ---
+    /// Mapping from token ID to Listing
+    listings: StorageMap<U256, Listing>,
 }
 
 /// Errors
@@ -609,5 +641,114 @@ impl FlexiGiftContract {
         });
 
         Ok(())
+    }
+
+    // --- Marketplace Implementation ---
+
+    /// List a gift card for sale
+    pub fn list_gift_card(&mut self, token_id: U256, price: U256) -> Result<(), FlexiGiftError> {
+        let owner = self.owner_of(token_id);
+        if msg::sender() != owner {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+
+        if price == U256::from(0) {
+            return Err(FlexiGiftError::InvalidAmount);
+        }
+
+        let listing = Listing {
+            token_id,
+            seller: msg::sender(),
+            price,
+            is_active: true,
+        };
+
+        self.listings.insert(token_id, listing);
+
+        evm::log(GiftCardListed {
+            tokenId: token_id,
+            seller: msg::sender(),
+            price,
+        });
+
+        Ok(())
+    }
+
+    /// Buy a listed gift card
+    pub fn buy_gift_card(&mut self, token_id: U256) -> Result<(), FlexiGiftError> {
+        let mut listing = self.listings.get(token_id);
+        if !listing.is_active {
+             return Err(FlexiGiftError::GiftCardNotFound); // Or specific Marketplace error
+        }
+
+        let seller = listing.seller;
+        let price = listing.price;
+        let buyer = msg::sender();
+
+        if buyer == seller {
+            return Err(FlexiGiftError::Unauthorized); // Cannot buy own listing
+        }
+
+        // TODO: Transfer USDC from buyer to seller
+        // This requires ERC20 interface implementation
+
+        // Transfer NFT ownership
+        self.token_owners.insert(token_id, buyer);
+        
+        // Update balances
+        let seller_balance = self.token_balances.get(seller);
+        let buyer_balance = self.token_balances.get(buyer);
+        self.token_balances.insert(seller, seller_balance - U256::from(1));
+        self.token_balances.insert(buyer, buyer_balance + U256::from(1));
+
+        // Mark listing as inactive
+        listing.is_active = false;
+        self.listings.insert(token_id, listing);
+
+        // Clear approval
+        self.token_approvals.insert(token_id, Address::ZERO);
+
+        evm::log(GiftCardSold {
+            tokenId: token_id,
+            seller,
+            buyer,
+            price,
+        });
+
+        evm::log(Transfer {
+            from: seller,
+            to: buyer,
+            tokenId: token_id,
+        });
+
+        Ok(())
+    }
+
+    /// Cancel a listing
+    pub fn cancel_listing(&mut self, token_id: U256) -> Result<(), FlexiGiftError> {
+        let mut listing = self.listings.get(token_id);
+        if !listing.is_active {
+            return Err(FlexiGiftError::GiftCardNotFound);
+        }
+
+        if msg::sender() != listing.seller {
+            return Err(FlexiGiftError::Unauthorized);
+        }
+
+        listing.is_active = false;
+        self.listings.insert(token_id, listing);
+
+        evm::log(ListingCancelled {
+            tokenId: token_id,
+            seller: msg::sender(),
+        });
+
+        Ok(())
+    }
+
+    /// Get listing details
+    pub fn get_listing(&self, token_id: U256) -> (U256, Address, U256, bool) {
+        let listing = self.listings.get(token_id);
+        (listing.token_id, listing.seller, listing.price, listing.is_active)
     }
 }
