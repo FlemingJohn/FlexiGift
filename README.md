@@ -76,42 +76,37 @@ graph TB
 
     %% Subgraph Styling
     style FE fill:none,stroke:#22c55e,stroke-dasharray: 5 5
-    style SC fill:none,stroke:#3b82f6,stroke-dasharray: 5 5
-    style EXT fill:none,stroke:#818cf8,stroke-dasharray: 5 5
 ```
 
 ### Transaction Lifecycle
+[View Full Flowchart](diagrams/flowchart.mmd)
+
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant G as 🟢 Giver
-    participant C as 🦀 Stylus Contract
-    participant R as 🎁 Recipient (Holder)
-    participant B as 🛒 Marketplace Buyer
+flowchart TD
+    %% Styling
+    classDef primary fill:#111,stroke:#22c55e,stroke-width:2px,color:#fff;
+    classDef secondary fill:#0f172a,stroke:#3b82f6,stroke-width:1px,color:#fff;
+    classDef alert fill:#450a0a,stroke:#ef4444,stroke-width:1px,color:#fff;
 
-    Note over G, C: 1. Creation & Escrow
-    G->>C: createGiftCard(USDC + Params)
-    Note right of C: Mint NFT (ERC-721)<br/>Lock USDC in Storage
-    C-->>G: Confirmation (Tx Hash)
+    Start([Giver]) --> Create[Create: Lock USDC & Mint NFT]
+    Create --> Delivery{Scheduled?}
+    
+    Delivery -- Yes --> Wait[Locked until Delivery Time]
+    Delivery -- No --> Active[Active & Redeemable]
+    
+    Wait --> Active
+    Active --> Action{Holder Action}
+    
+    Action -- Redeem --> End[Recipient Receives USDC]
+    Action -- Marketplace --> Trade[Trade NFT for USDC]
+    Trade --> Active
+    
+    Active -- Expired --> Refund[Giver Reclaims USDC]
 
-    Note over C, R: 2. Redemption Path
-    alt Immediate Access
-        R->>C: redeemGiftCard(Amount)
-        C->>R: Unlock & Transfer USDC
-    else Scheduled (Timelock)
-        Note over G: Wait for Timestamp
-        G->>C: deliverGiftCard()
-        Note right of C: Unlock NFT Logic
-        R->>C: redeemGiftCard(Amount)
-        C->>R: Unlock & Transfer USDC
-    end
-
-    Note over G, B: 3. Secondary Trade
-    G->>C: listGiftCard(Price)
-    B->>C: buyGiftCard(Price)
-    Note right of C: Atomic Swap:<br/>NFT to Buyer<br/>USDC to Seller
-    B->>C: redeemGiftCard()
-    C->>B: Unlock & Transfer USDC
+    %% Applying Classes
+    class Start,End,Refund primary;
+    class Create,Wait,Active,Trade secondary;
+    class Delivery,Action alert;
 ```
 
 ## 🛠️ Project Modules

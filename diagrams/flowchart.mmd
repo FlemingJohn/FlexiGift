@@ -1,0 +1,25 @@
+flowchart TD
+    %% Styling
+    classDef primary fill:#111,stroke:#22c55e,stroke-width:2px,color:#fff;
+    classDef secondary fill:#0f172a,stroke:#3b82f6,stroke-width:1px,color:#fff;
+    classDef alert fill:#450a0a,stroke:#ef4444,stroke-width:1px,color:#fff;
+
+    Start([Giver]) --> Create[Create: Lock USDC & Mint NFT]
+    Create --> Delivery{Scheduled?}
+    
+    Delivery -- Yes --> Wait[Locked until Delivery Time]
+    Delivery -- No --> Active[Active & Redeemable]
+    
+    Wait --> Active
+    Active --> Action{Holder Action}
+    
+    Action -- Redeem --> End[Recipient Receives USDC]
+    Action -- Marketplace --> Trade[Trade NFT for USDC]
+    Trade --> Active
+    
+    Active -- Expired --> Refund[Giver Reclaims USDC]
+
+    %% Applying Classes
+    class Start,End,Refund primary;
+    class Create,Wait,Active,Trade secondary;
+    class Delivery,Action alert;
