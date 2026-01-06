@@ -118,14 +118,18 @@ export const CreatePage: React.FC = () => {
                     </button>
 
                     {/* Header */}
-                    <div className="flex items-center space-x-4 mb-12">
-                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
-                            <Gift className="text-white" size={32} />
+                    <div className="flex flex-col mb-12">
+                        <div className="flex items-center space-x-2 text-green-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-4">
+                            <span className="w-8 h-[1px] bg-green-500/30"></span>
+                            <span>Stylus Protocol</span>
                         </div>
-                        <div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-white">Create Gift Card</h1>
-                            <p className="text-white/60 mt-2">On-chain gift cards powered by Arbitrum Stylus</p>
-                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-4">
+                            Create Gift
+                        </h1>
+                        <p className="text-white/40 font-medium max-w-lg leading-relaxed">
+                            Mint a unique digital asset on Arbitrum. Your funds are secured by
+                            Rust-optimized smart contracts.
+                        </p>
                     </div>
 
                     {txHash ? (

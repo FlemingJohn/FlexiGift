@@ -20,23 +20,24 @@ export const WalletConnect: React.FC = () => {
     if (isConnected && address) {
         return (
             <div className="flex items-center space-x-3">
-                <div className="glass-card px-4 py-2 rounded-full flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-white">{formatAddress(address)}</span>
+                <div className="bg-white/5 border border-white/10 px-4 py-2 rounded-full flex items-center space-x-3 backdrop-blur-md">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse"></div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/90">{formatAddress(address)}</span>
                     <a
                         href={getExplorerLink(address, 'address')}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-white/60 hover:text-white transition-colors"
+                        className="text-white/30 hover:text-green-500 transition-colors"
                     >
-                        <ExternalLink size={14} />
+                        <ExternalLink size={12} />
                     </a>
                 </div>
                 <button
                     onClick={disconnect}
-                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full text-sm transition-all"
+                    className="w-10 h-10 bg-white/5 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 text-white/40 hover:text-red-500 rounded-full flex items-center justify-center transition-all duration-300"
+                    title="Disconnect"
                 >
-                    Disconnect
+                    <X size={16} />
                 </button>
             </div>
         );
@@ -46,9 +47,9 @@ export const WalletConnect: React.FC = () => {
         <>
             <button
                 onClick={() => setShowModal(true)}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold text-sm transition-all duration-300 shadow-lg shadow-green-500/30 flex items-center space-x-2"
+                className="px-6 py-2.5 bg-white text-black hover:bg-green-500 hover:text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-xl shadow-white/5 flex items-center space-x-3 group"
             >
-                <Wallet size={18} />
+                <Wallet className="group-hover:rotate-12 transition-transform" size={16} />
                 <span>Connect Wallet</span>
             </button>
 

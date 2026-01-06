@@ -32,12 +32,11 @@ export const Hero: React.FC = () => {
       <div className="max-w-7xl w-full mx-auto relative z-10 grid lg:grid-cols-12 gap-4">
         <div className="lg:col-span-8 mt-12">
           <div
-            className="flex items-center space-x-3 text-[10px] uppercase tracking-[0.4em] text-green-500 mb-8"
+            className="flex items-center space-x-3 text-[10px] uppercase tracking-[0.4em] text-green-500 mb-8 font-black"
             style={{ transform: `translateY(${offset * -0.1}px)` }}
           >
-            <span className="w-12 h-[1px] bg-green-500/50"></span>
-            <span className="font-bold">Built on Arbitrum</span>
-            <span className="w-4 h-[1px] bg-green-500/50"></span>
+            <span className="w-12 h-[1px] bg-green-500/30"></span>
+            <span>Stylus Protocol</span>
           </div>
 
           <h1 className="text-[clamp(3rem,8vw,6.5rem)] font-bold leading-[0.9] tracking-tighter text-white">

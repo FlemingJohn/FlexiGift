@@ -241,17 +241,32 @@ export const RedeemPage: React.FC = () => {
                         <span>Back to Home</span>
                     </button>
 
+                    {/* Header */}
+                    <div className="flex flex-col mb-12">
+                        <div className="flex items-center space-x-2 text-green-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-4">
+                            <span className="w-8 h-[1px] bg-green-500/30"></span>
+                            <span>Stylus Protocol</span>
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-4">
+                            Gift Asset
+                        </h1>
+                        <p className="text-white/40 font-medium max-w-lg">
+                            Securely locked on Arbitrum. Verify details and claim your balance below.
+                        </p>
+                    </div>
+
                     {/* Gift Card Details (NFT Card) */}
-                    <div className="flex justify-center mb-12">
+                    <div className="flex justify-center mb-16">
                         <NFTCard
                             id={giftCardId || ''}
                             amount={giftCard.amount}
                             remainingBalance={giftCard.remainingBalance}
                             giver={giftCard.giver}
                             expiryDate={new Date(giftCard.expiryTimestamp * 1000).toLocaleDateString()}
-                            className="scale-110 md:scale-125 my-8"
+                            className="scale-110 md:scale-125 my-8 transition-transform hover:rotate-1"
                         />
-                    </div>      {/* Custom Message */}
+                    </div>
+                    {/* Custom Message */}
                     {giftCard.message && giftCard.message.trim() !== '' && (
                         <div className="mt-6 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
                             <div className="flex items-start space-x-3 mb-3">

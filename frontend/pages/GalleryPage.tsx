@@ -41,19 +41,21 @@ export const GalleryPage: React.FC = () => {
             <main className="relative z-10 pt-32 pb-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-                        <div>
-                            <div className="flex items-center space-x-3 mb-2">
-                                <Grid className="text-green-400" size={24} />
-                                <span className="text-green-400 font-bold tracking-widest uppercase text-sm">Digital Assets</span>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                        <div className="flex flex-col">
+                            <div className="flex items-center space-x-2 text-green-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-4">
+                                <span className="w-8 h-[1px] bg-green-500/30"></span>
+                                <span>Stylus Protocol</span>
                             </div>
-                            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter">
+                            <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">
                                 My Gift <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">NFTs</span>
                             </h1>
                         </div>
-                        <p className="text-white/40 mt-4 md:mt-0 font-medium">
-                            {nfts.length} unique gift cards found on Arbitrum
-                        </p>
+                        <div className="px-4 py-2 bg-white/5 border border-white/5 rounded-full">
+                            <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">
+                                {nfts.length} Assets Found on Arbitrum
+                            </p>
+                        </div>
                     </div>
 
                     {!isConnected ? (

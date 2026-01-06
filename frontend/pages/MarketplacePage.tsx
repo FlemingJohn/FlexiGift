@@ -65,29 +65,30 @@ export const MarketplacePage: React.FC = () => {
             <main className="relative z-10 pt-32 pb-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-                        <div>
-                            <div className="flex items-center space-x-3 mb-2">
-                                <ShoppingCart className="text-green-400" size={24} />
-                                <span className="text-green-400 font-bold tracking-widest uppercase text-sm">Secondary Market</span>
+                    <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+                        <div className="flex flex-col">
+                            <div className="flex items-center space-x-2 text-green-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-4">
+                                <span className="w-8 h-[1px] bg-green-500/30"></span>
+                                <span>Stylus Protocol</span>
                             </div>
-                            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter">
-                                Gift Card <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Marketplace</span>
+                            <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none mb-4">
+                                Secondary <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Market</span>
                             </h1>
-                            <p className="text-white/40 mt-4 max-w-lg font-medium">
-                                Buy unused gift cards at a discount or sell your unwanted cards for USDC. Instant settlement on Arbitrum.
+                            <p className="text-white/40 font-medium max-w-lg leading-relaxed">
+                                Trade unique on-chain gift assets. Buy at a discount or sell
+                                for instant USDC liquidity in a non-custodial marketplace.
                             </p>
                         </div>
 
                         {/* Search Bar */}
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={20} />
+                        <div className="relative w-full lg:w-96 group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-green-500 transition-colors" size={20} />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search by ID or message..."
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:border-green-500/50 transition-all outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-white placeholder:text-white/20 focus:border-green-500/50 focus:bg-white/[0.08] transition-all outline-none"
                             />
                         </div>
                     </div>
